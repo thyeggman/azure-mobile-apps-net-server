@@ -80,8 +80,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
 
             var settingsProvider = actionContext.ControllerContext.Configuration.GetMobileAppSettingsProvider();
 
-            // Check segments count to allow splash page (base url) requests
-            if (!settingsProvider.GetMobileAppSettings().SkipVersionCheck && request.RequestUri.Segments.Count() > 1)
+            if (!settingsProvider.GetMobileAppSettings().SkipVersionCheck)
             {
                 var keys = request.GetQueryNameValuePairs();
                 string version = request.GetQueryNameValuePairs()

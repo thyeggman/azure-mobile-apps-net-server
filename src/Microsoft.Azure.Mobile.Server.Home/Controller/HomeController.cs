@@ -11,7 +11,6 @@ using Microsoft.Azure.Mobile.Server.Content;
 namespace Microsoft.Azure.Mobile.Server.Controllers
 {
     [ApiExplorerSettings(IgnoreApi = true)]
-    [MobileAppController]
     public class HomeController : ApiController
     {
         [HttpGet]
