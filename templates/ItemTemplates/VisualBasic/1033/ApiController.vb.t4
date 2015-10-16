@@ -1,0 +1,26 @@
+﻿<#@ template language="C#" HostSpecific="True" #>
+<#@ output extension="vb" #>
+<#@ parameter type="System.String" name="ControllerName" #>
+<#
+var controllerSuffix = "Controller";
+var controllerPrefix = "?";
+if(ControllerName.EndsWith(controllerSuffix)){
+    controllerPrefix = ControllerName.Substring(0, ControllerName.LastIndexOf(controllerSuffix));
+}
+#>
+Imports System.Net
+Imports System.Web.Http
+Imports Microsoft.Azure.Mobile.Server
+
+Public Class <#= ControllerName #>
+    Inherits ApiController
+
+    Public Property Services As ApiServices
+
+    ' GET api/<#= controllerPrefix #>
+    Public Function GetValues() As String
+        Services.Log.Info("Hello from custom controller!")
+        Return "Hello"
+    End Function
+     
+End Class

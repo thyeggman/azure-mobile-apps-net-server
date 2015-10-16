@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<TemplateDefinition Name="Microsoft Azure Mobile App" Order="2005">
+    <UI>
+        <Template Name="Azure Mobile App (Preview)" BaseTemplateID="Microsoft.WAP.CSharp.MobileApp.v1.0" Order="3000">
+            <Icon>CSProject.ico</Icon>
+            <PreviewImage>CSProject.ico</PreviewImage>
+            <Summary>A project template for creating an ASP.NET Web API-based mobile backend for a Microsoft Azure Mobile App.</Summary>
+            <Description>A project template for creating an ASP.NET Web API-based mobile backend for a Microsoft Azure Mobile App.</Description>
+            <Options>
+                <TemplateReferences>
+                    <WebAPI Required="true"/>
+                </TemplateReferences>
+            </Options>
+            <UIFilters>MobileApps</UIFilters>
+        </Template>
+    </UI>
+
+    <BaseTemplates>
+        <BaseTemplate ID="Microsoft.WAP.CSharp.MobileApp.v1.0"
+                      VSTemplatePath="MobileServicesApplicationv1.0\MobileServicesApplication.cshtml.vstemplate">
+            <ApplyRules>
+                <RunRule RuleID="global.WebForms" Option="WebForms" />
+                <RunRule RuleID="global.WebApiWithWebForms" Option="WebForms" />
+            </ApplyRules>
+        </BaseTemplate>
+    </BaseTemplates>
+</TemplateDefinition>

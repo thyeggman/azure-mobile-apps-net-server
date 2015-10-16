@@ -1,0 +1,34 @@
+﻿<#@ template language="C#" HostSpecific="True" #>
+<#@ output extension="cs" #>
+<#@ parameter type="System.String" name="ControllerName" #>
+<#@ parameter type="System.String" name="Namespace" #>
+<#
+var controllerSuffix = "Controller";
+var controllerPrefix = "?";
+if(ControllerName.EndsWith(controllerSuffix)){
+    controllerPrefix = ControllerName.Substring(0, ControllerName.LastIndexOf(controllerSuffix));
+}
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using Microsoft.Azure.Mobile.Server;
+
+namespace <#= Namespace #>
+{
+    public class <#= ControllerName #> : ApiController
+    {
+        public ApiServices Services { get; set; }
+
+        // GET api/<#= controllerPrefix #>
+        public string Get()
+        {
+            Services.Log.Info("Hello from custom controller!");
+            return "Hello";
+        }
+
+    }
+}
