@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
             // If first row in the server response did not include columns with default values, client sdk ignores these columns for the rest of the rows
             serializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
             serializerSettings.NullValueHandling = NullValueHandling.Include;
-            serializerSettings.Converters.Add(new StringEnumConverter { CamelCaseText = true });
+            serializerSettings.Converters.Add(new StringEnumConverter());
             serializerSettings.Converters.Add(dateTimeConverter);
             serializerSettings.MissingMemberHandling = MissingMemberHandling.Error;
             serializerSettings.CheckAdditionalContent = true;
