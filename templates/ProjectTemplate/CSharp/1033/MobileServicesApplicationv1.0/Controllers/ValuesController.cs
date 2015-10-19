@@ -15,9 +15,6 @@ namespace $safeprojectname$.Controllers
         {
             MobileAppSettingsDictionary settings = this.Configuration.GetMobileAppSettingsProvider().GetMobileAppSettings();
 
-            ITraceWriter traceWriter = this.Configuration.Services.GetTraceWriter();
-            traceWriter.Info("Hello from " + settings.Name);
-
             return "Hello World!";
         }
 
