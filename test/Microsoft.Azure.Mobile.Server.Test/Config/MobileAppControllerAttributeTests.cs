@@ -161,7 +161,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
 
             // Verify Converters
             var stringEnumConverter = serializerSettings.Converters.Single(c => c.GetType() == typeof(StringEnumConverter)) as StringEnumConverter;
-            Assert.True(stringEnumConverter.CamelCaseText);
+            Assert.False(stringEnumConverter.CamelCaseText);
 
             var isoDateTimeConverter = serializerSettings.Converters.Single(c => c.GetType() == typeof(IsoDateTimeConverter)) as IsoDateTimeConverter;
             Assert.Equal(DateTimeStyles.AdjustToUniversal, isoDateTimeConverter.DateTimeStyles);
