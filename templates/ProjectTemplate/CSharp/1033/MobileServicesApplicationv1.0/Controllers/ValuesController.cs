@@ -1,6 +1,4 @@
 ﻿using System.Web.Http;
-using System.Web.Http.Tracing;
-using Microsoft.Azure.Mobile.Server;
 using Microsoft.Azure.Mobile.Server.Config;
 
 namespace $safeprojectname$.Controllers
@@ -13,11 +11,6 @@ namespace $safeprojectname$.Controllers
         // GET api/values
         public string Get()
         {
-            MobileAppSettingsDictionary settings = this.Configuration.GetMobileAppSettingsProvider().GetMobileAppSettings();
-
-            ITraceWriter traceWriter = this.Configuration.Services.GetTraceWriter();
-            traceWriter.Info("Hello from " + settings.Name);
-
             return "Hello World!";
         }
 
