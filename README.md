@@ -50,4 +50,4 @@ If you encounter any bugs with the library please file an issue in the [Issues](
 
 ## License
 
-[MIT](./LICENSE)
+[Apache (2.0)](./LICENSE)
