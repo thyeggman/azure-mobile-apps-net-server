@@ -13,9 +13,6 @@ Public Class ValuesController
     Public Function GetValue() As String
         Dim settings As MobileAppSettingsDictionary = Me.Configuration.GetMobileAppSettingsProvider().GetMobileAppSettings()
 
-        Dim traceWriter As ITraceWriter = Me.Configuration.Services.GetTraceWriter()
-        traceWriter.Info("Hello from " + settings.Name)
-
         Return "Hello World!"
     End Function
 
