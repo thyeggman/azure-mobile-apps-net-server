@@ -1,5 +1,4 @@
 ﻿using System.Web.Http;
-using Microsoft.Azure.Mobile.Server;
 using Microsoft.Azure.Mobile.Server.Config;
 
 namespace $safeprojectname$.Controllers

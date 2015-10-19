@@ -1,5 +1,4 @@
 ﻿Imports System.Web.Http
-Imports Microsoft.Azure.Mobile.Server
 Imports Microsoft.Azure.Mobile.Server.Config
 
 ' Use the MobileAppController attribute for each ApiController you want to use  
