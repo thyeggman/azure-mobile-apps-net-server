@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BBB08829-B162-40C7-A33A-AEBE20307743}"
 EndProject
@@ -48,8 +48,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.Mobile.Server.Home", "src\Microsoft.Azure.Mobile.Server.Home\Microsoft.Azure.Mobile.Server.Home.csproj", "{A42DC113-C021-4568-93BC-03824ECF29E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.Mobile.Server.Home.Test", "test\Microsoft.Azure.Mobile.Server.Home.Test\Microsoft.Azure.Mobile.Server.Home.Test.csproj", "{E5C1C151-13F1-4050-A4E8-642F76412973}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioFiles", "templates\VisualStudioFiles.csproj", "{1C7AB520-CE1F-409A-88D8-CFEE910CF674}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -137,10 +135,6 @@ Global
 		{E5C1C151-13F1-4050-A4E8-642F76412973}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5C1C151-13F1-4050-A4E8-642F76412973}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5C1C151-13F1-4050-A4E8-642F76412973}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C7AB520-CE1F-409A-88D8-CFEE910CF674}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C7AB520-CE1F-409A-88D8-CFEE910CF674}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C7AB520-CE1F-409A-88D8-CFEE910CF674}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C7AB520-CE1F-409A-88D8-CFEE910CF674}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -166,6 +160,5 @@ Global
 		{4A3AFC58-3C2D-45FF-8E90-8D5F586A3B5E} = {2ED08A97-4DE7-4844-997C-D7EC334639C5}
 		{A42DC113-C021-4568-93BC-03824ECF29E1} = {BBB08829-B162-40C7-A33A-AEBE20307743}
 		{E5C1C151-13F1-4050-A4E8-642F76412973} = {2ED08A97-4DE7-4844-997C-D7EC334639C5}
-		{1C7AB520-CE1F-409A-88D8-CFEE910CF674} = {7FBF1DBB-6B9B-42F5-B9A2-0CA0DDAEACED}
 	EndGlobalSection
 EndGlobal
