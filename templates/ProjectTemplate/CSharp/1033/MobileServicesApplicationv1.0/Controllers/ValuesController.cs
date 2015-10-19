@@ -1,5 +1,4 @@
 ﻿using System.Web.Http;
-using System.Web.Http.Tracing;
 using Microsoft.Azure.Mobile.Server;
 using Microsoft.Azure.Mobile.Server.Config;
 

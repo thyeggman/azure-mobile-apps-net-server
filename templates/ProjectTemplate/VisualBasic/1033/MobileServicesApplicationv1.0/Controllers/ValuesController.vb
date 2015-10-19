@@ -1,5 +1,4 @@
 ﻿Imports System.Web.Http
-Imports System.Web.Http.Tracing
 Imports Microsoft.Azure.Mobile.Server
 Imports Microsoft.Azure.Mobile.Server.Config
 
