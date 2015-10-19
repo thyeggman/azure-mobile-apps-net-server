@@ -13,8 +13,6 @@ namespace $safeprojectname$.Controllers
         // GET api/values
         public string Get()
         {
-            MobileAppSettingsDictionary settings = this.Configuration.GetMobileAppSettingsProvider().GetMobileAppSettings();
-
             return "Hello World!";
         }
 

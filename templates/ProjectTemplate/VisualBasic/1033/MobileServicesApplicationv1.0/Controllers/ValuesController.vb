@@ -11,8 +11,6 @@ Public Class ValuesController
 
     ' GET api/values
     Public Function GetValue() As String
-        Dim settings As MobileAppSettingsDictionary = Me.Configuration.GetMobileAppSettingsProvider().GetMobileAppSettings()
-
         Return "Hello World!"
     End Function
 
