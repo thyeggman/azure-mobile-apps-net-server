@@ -24,12 +24,6 @@ After you've built the SDK, open the Test Explorer in Visual Studio (Test->Windo
 
 There is a sample web project in the 'sample' folder in the solution.  It contains controllers which excercise several features of the SDK.
 
-  * **BrownOnlineController**
-  * **CustomController**
-  * **GreenController**
-  * **PersonController**
-  * **SecuredController**
-
 To run the sample project:
 
 * Right click on the 'SampleApp' project and select 'Set as startup project'.
@@ -39,8 +33,8 @@ To run the sample project:
 
 ## Useful Resources
 
-* Tutorials and product overview are available at [Microsoft Azure Mobile Services Developer Center](http://azure.microsoft.com/en-us/develop/mobile).
-* Our product team actively monitors the [Mobile Services Developer Forum](http://social.msdn.microsoft.com/Forums/en-US/azuremobile/) to assist you with any troubles.
+* Tutorials and product overview are available at [Microsoft Azure Mobile Services Developer Center](https://azure.microsoft.com/en-us/documentation/articles/app-service-mobile-value-prop-preview/).
+* Our product team actively monitors the [Mobile Services Developer Forum](https://social.msdn.microsoft.com/forums/azure/en-US/home?forum=azuremobile) to assist you with any troubles.
 
 ## Contribute Code or Provide Feedback
 
