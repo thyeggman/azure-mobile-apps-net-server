@@ -13,7 +13,7 @@ To get the source code and a sample backend via **git** just type:
 
 The solution must be built in Visual Studio 2013 or 2015.
 
-1. Open the ```ServerSDK.sln``` solution file in Visual Studio 2012.
+1. Open the ```ServerSDK.sln``` solution file in Visual Studio.
 2. Press ```F7``` or ```Ctrl```+```Shift```+```B``` to build the solution.
 
 ### Running the Tests
