@@ -2,11 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ---------------------------------------------------------------------------- 
 
+using System.ComponentModel;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Newtonsoft.Json.Linq;
+using System.Security.Claims;
 
 namespace Microsoft.Azure.Mobile.Server.TestControllers
 {
@@ -47,13 +49,16 @@ namespace Microsoft.Azure.Mobile.Server.TestControllers
 
         private IHttpActionResult GetUserDetails()
         {
-            MobileAppUser user = this.User as MobileAppUser;
+            ClaimsPrincipal user = this.User as ClaimsPrincipal;
             JObject details = null;
+            ClaimsIdentity identity = this.User.Identity as ClaimsIdentity;
+            string userId = identity.GetClaimValueOrNull("uid");
+
             if (user != null)
             {
                 details = new JObject
                 {
-                    { "id", user.Id },
+                    { "id", userId },
                 };
             }
             return this.Json(details);

@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------- 
 
 using System;
+using System.Collections.Generic;
 using System.Web.Http;
 using Microsoft.Azure.Mobile.Server;
 using Microsoft.Azure.Mobile.Server.Authentication;
@@ -16,7 +17,7 @@ namespace Owin
     /// </summary>
     public static class MobileAppAuthenticationAppBuilderExtensions
     {
-        public static IAppBuilder UseMobileAppAuthentication(this IAppBuilder appBuilder, HttpConfiguration config, AuthenticationMode mode = AuthenticationMode.Active)
+        public static IAppBuilder UseMobileAppAuthentication(this IAppBuilder appBuilder, HttpConfiguration config, AppServiceAuthenticationMode appServiceAuthMode, AuthenticationMode mode = AuthenticationMode.Active)
         {
             if (appBuilder == null)
             {
@@ -28,10 +29,17 @@ namespace Owin
                 throw new ArgumentNullException("config");
             }
 
-            // Add the service authentication middleware
-            MobileAppAuthenticationOptions serviceOptions = GetMobileAppAuthenticationOptions(config, mode);
-            IMobileAppTokenHandler tokenHandler = config.GetMobileAppTokenHandler();
-            appBuilder.UseMobileAppAuthentication(serviceOptions, tokenHandler);
+            MobileAppSettingsDictionary settings = config.GetMobileAppSettingsProvider().GetMobileAppSettings();
+            bool runningInAzure = settings.GetValueOrDefault<string>("WEBSITE_HOSTNAME") != null;
+
+            if ((appServiceAuthMode == AppServiceAuthenticationMode.LocalOnly && !runningInAzure)
+                || appServiceAuthMode == AppServiceAuthenticationMode.Always)
+            {
+                // Add the service authentication middleware only if AppServiceAuthenticationMode is set to LocalOnly and the app is not running in Azure, or set to Always
+                MobileAppAuthenticationOptions serviceOptions = GetMobileAppAuthenticationOptions(config, mode);
+                IMobileAppTokenHandler tokenHandler = config.GetMobileAppTokenHandler();
+                appBuilder.UseMobileAppAuthentication(serviceOptions, tokenHandler);
+            }
 
             return appBuilder;
         }
@@ -77,7 +85,7 @@ namespace Owin
             MobileAppAuthenticationOptions serviceOptions = new MobileAppAuthenticationOptions
             {
                 AuthenticationMode = mode,
-                SigningKey = settings.SigningKey
+                SigningKey = settings.SigningKey,
             };
 
             return serviceOptions;

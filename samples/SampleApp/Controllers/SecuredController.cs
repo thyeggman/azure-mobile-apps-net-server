@@ -2,7 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ---------------------------------------------------------------------------- 
 
+using System.ComponentModel;
 using System.Web.Http;
+using System.Security.Claims;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Config;
 
@@ -18,8 +20,17 @@ namespace Local.Controllers
         [Authorize]
         public string Get()
         {
-            MobileAppUser user = this.User as MobileAppUser;
-            return "Hello from secured controller! UserId: " + user.Id;
+            ClaimsPrincipal user = this.User as ClaimsPrincipal;
+            ClaimsIdentity identity = user.Identity as ClaimsIdentity;
+            Claim userIdClaim = identity.FindFirst("uid");
+            if (userIdClaim != null)
+            {
+                return "Hello from secured controller! UserId: " + userIdClaim.Value;
+            }
+            else
+            {
+                return "Hello from secured controller! UserId: null";
+            }
         }
     }
 }

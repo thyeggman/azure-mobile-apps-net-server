@@ -12,6 +12,7 @@ using AutoMapper;
 using Local.DataObjects;
 using Local.Models;
 using Microsoft.Azure.Mobile.Server;
+using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Config;
 using Owin;
 
@@ -45,7 +46,7 @@ namespace Local
             Database.SetInitializer(new GreenInitializer());
             Database.SetInitializer(new BrownInitializer());
 
-            app.UseMobileAppAuthentication(config);
+            app.UseMobileAppAuthentication(config, AppServiceAuthenticationMode.LocalOnly);
             app.UseWebApi(config);
         }
     }

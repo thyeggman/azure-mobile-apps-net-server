@@ -24,9 +24,6 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
     /// </summary>
     public class MobileAppTokenHandler : IMobileAppTokenHandler
     {
-        internal const string ZumoIssuerValue = "urn:microsoft:windows-azure:zumo";
-        internal const string ZumoAudienceValue = ZumoIssuerValue;
-
         private readonly JsonSerializerSettings tokenSerializerSettings = GetTokenSerializerSettings();
 
         /// <summary>
@@ -39,7 +36,6 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
             {
                 throw new ArgumentNullException("config");
             }
-
             this.tokenSerializerSettings = GetTokenSerializerSettings();
         }
 
@@ -79,20 +75,20 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
                 finalClaims.Add(new Claim("uid", uidClaim.Value));
             }
 
-            return CreateTokenFromClaims(finalClaims, secretKey, ZumoAudienceValue, ZumoIssuerValue, lifetime);
+            return CreateTokenFromClaims(finalClaims, secretKey, lifetime);
         }
 
         /// <inheritdoc />
-        public virtual bool TryValidateLoginToken(string token, string secretKey, out ClaimsPrincipal claimsPrincipal)
+        public virtual bool TryValidateLoginToken(string token, string audience, string issuer, MobileAppAuthenticationOptions options, out ClaimsPrincipal claimsPrincipal)
         {
             if (token == null)
             {
                 throw new ArgumentNullException("token");
             }
 
-            if (secretKey == null)
+            if (options == null)
             {
-                throw new ArgumentNullException("secretKey");
+                throw new ArgumentNullException("options");
             }
 
             JwtSecurityToken parsedToken = null;
@@ -111,41 +107,13 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
             TokenValidationParameters validationParams = new TokenValidationParameters
             {
                 ValidateAudience = true,
-                ValidAudience = ZumoAudienceValue,
+                ValidAudience = audience,
                 ValidateIssuer = true,
-                ValidIssuer = ZumoIssuerValue,
+                ValidIssuer = issuer,
                 ValidateLifetime = parsedToken.Payload.Exp.HasValue  // support tokens with no expiry
             };
 
-            return TryValidateToken(validationParams, token, secretKey, out claimsPrincipal);
-        }
-
-        /// <inheritdoc />
-        public virtual MobileAppUser CreateServiceUser(ClaimsIdentity claimsIdentity, string authToken)
-        {
-            MobileAppUser user = new MobileAppUser(claimsIdentity);
-
-            if (user.Identity.IsAuthenticated)
-            {
-                // Determine the user ID based on either the uid or NameIdentifier claims.
-                string userIdValue = claimsIdentity.GetClaimValueOrNull(ClaimTypes.NameIdentifier) ?? claimsIdentity.GetClaimValueOrNull("uid");
-                string prefix;
-                string userId;
-                if (!string.IsNullOrEmpty(userIdValue) &&
-                    this.TryParseUserId(userIdValue, out prefix, out userId))
-                {
-                    user.Id = userIdValue;
-                    user.MobileAppAuthenticationToken = authToken;
-                }
-                else
-                {
-                    // if no user name specified or the format is invalid,
-                    // set to anonymous
-                    SetAnonymousUser(user);
-                }
-            }
-
-            return user;
+            return TryValidateToken(validationParams, token, options.SigningKey, out claimsPrincipal);
         }
 
         /// <inheritdoc />
@@ -184,12 +152,15 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
             }
         }
 
-        internal static MobileAppUser SetAnonymousUser(MobileAppUser user)
+        internal static ClaimsPrincipal SetAnonymousUser(ClaimsPrincipal user)
         {
-            if (user != null)
+            ClaimsIdentity identity = user.Identity as ClaimsIdentity;
+            foreach (Claim claim in identity.Claims)
             {
-                user.Id = null;
-                user.MobileAppAuthenticationToken = null;
+                if (claim.Type == ClaimTypes.NameIdentifier || claim.Type == "uid")
+                {
+                    identity.TryRemoveClaim(claim);
+                }
             }
 
             return user;
@@ -231,27 +202,41 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
         /// </summary>
         /// <param name="token">The JWT token string to validate.</param>
         /// <param name="secretKey">The key to use in the validation.</param>
-        /// <exception cref="System.ArgumentException">Thrown if the JWT token is malformed</exception>
+        /// <param name="audience">The audience to use in validation.</param>
+        /// <param name="issuer">The issuer to use in validation.</param>
+        /// <exception cref="System.ArgumentException">Thrown if the JWT token is malformed.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown if one of the method parameters are null or empty.</exception>
         /// <exception cref="System.IdentityModel.Tokens.SecurityTokenValidationException">Thrown if the JWT token fails validation.</exception>
         /// <exception cref="System.IdentityModel.Tokens.SecurityTokenExpiredException">Thrown if the JWT token is expired.</exception>
         /// <exception cref="System.IdentityModel.Tokens.SecurityTokenNotYetValidException">Thrown if the JWT token is not yet valid.</exception>
-        public static void ValidateToken(string token, string secretKey)
+        public static void ValidateToken(string token, string secretKey, string audience, string issuer)
         {
-            if (string.IsNullOrEmpty(token))
+            if (token == null)
             {
                 throw new ArgumentNullException("token");
             }
 
-            if (string.IsNullOrEmpty(secretKey))
+            if (secretKey == null)
             {
                 throw new ArgumentNullException("secretKey");
             }
 
+            if (audience == null)
+            {
+                throw new ArgumentNullException("audience");
+            }
+
+            if (issuer == null)
+            {
+                throw new ArgumentNullException("issuer");
+            }
+
             TokenValidationParameters validationParameters = new TokenValidationParameters
             {
-                ValidAudience = ZumoAudienceValue,
+                ValidateAudience = true,
+                ValidAudience = audience,
                 ValidateIssuer = true,
-                ValidIssuer = ZumoIssuerValue
+                ValidIssuer = issuer,
             };
 
             ValidateToken(validationParameters, token, secretKey);
@@ -269,7 +254,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
             return tokenHandler.ValidateToken(tokenString, validationParams, out validatedToken);
         }
 
-        public static TokenInfo CreateTokenFromClaims(IEnumerable<Claim> claims, string secretKey, string audience, string issuer, TimeSpan? lifetime)
+        public static TokenInfo CreateTokenFromClaims(IEnumerable<Claim> claims, string secretKey, TimeSpan? lifetime, string audience = null, string issuer = null)
         {
             byte[] signingKey = GetSigningKey(secretKey);
             BinarySecretSecurityToken signingToken = new BinarySecretSecurityToken(signingKey);
@@ -314,47 +299,6 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
         }
 
         /// <summary>
-        /// This method is ONLY to be used in cases where the SkipTokenSignatureValidation option is turned on
-        /// and we can safely assume that any incoming tokens are valid and their claims can be trusted.
-        /// </summary>
-        /// <param name="tokenValue">The token to be parsed.</param>
-        /// <param name="claimsPrincipal">The resulting claims principal.</param>
-        /// <returns>True if the token can be parsed successfully.</returns>
-        internal static bool GetClaimsPrincipalForPrevalidatedToken(string tokenValue, out ClaimsPrincipal claimsPrincipal)
-        {
-            TokenValidationParameters validationParameters = new TokenValidationParameters
-            {
-                ValidateAudience = true,
-                ValidAudience = ZumoAudienceValue,
-                ValidateIssuer = true,
-                ValidIssuer = ZumoIssuerValue,
-                ValidateLifetime = false,
-            };
-
-            SkipSignatureJwtSecurityTokenHandler tokenHandler = new SkipSignatureJwtSecurityTokenHandler();
-            claimsPrincipal = null;
-            try
-            {
-                SecurityToken validatedToken;
-                claimsPrincipal = tokenHandler.ValidateToken(tokenValue, validationParameters, out validatedToken);
-            }
-            catch (SecurityTokenException)
-            {
-                // can happen if the token fails validation for any reason,
-                // e.g. wrong signature, etc.
-                return false;
-            }
-            catch (ArgumentException)
-            {
-                // happens if the token cannot even be read
-                // i.e. it is malformed
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// Returns the serialized JSON for this credentials object that should
         /// be returned in the claims of Mobile Service JWT tokens.
         /// </summary>
@@ -375,26 +319,6 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
                 // Setting this to None prevents Json.NET from loading malicious, unsafe, or security-sensitive types
                 TypeNameHandling = TypeNameHandling.None
             };
-        }
-
-        /// <summary>
-        /// This token handler is only used in scenarios where signature verification
-        /// does NOT need to be performed on tokens (e.g. when the runtime is running behind
-        /// a gateway that is already doing token validation, and the runtime is not publically
-        /// exposed).
-        /// <remarks>
-        /// We use this mechanism of skipping signature validation because we want to preserve
-        /// all the other side effects that the base token handler causes. For example, it does
-        /// claim name mapping, sets the resulting principal to authenticated, etc. We don't
-        /// want to try to simulate all of those.
-        /// </remarks>
-        /// </summary>
-        private class SkipSignatureJwtSecurityTokenHandler : JwtSecurityTokenHandler
-        {
-            protected override JwtSecurityToken ValidateSignature(string token, TokenValidationParameters validationParameters)
-            {
-                return new JwtSecurityToken(token);
-            }
         }
     }
 }

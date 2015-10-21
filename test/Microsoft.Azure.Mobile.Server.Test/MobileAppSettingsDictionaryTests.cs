@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
         [Fact]
         public void SigningKey_Roundtrips()
         {
-            this.settings[MobileAppSettingsKeys.SigningKey] = "DefaultSigningKey";
+            this.settings[MobileAppSettingsKeys.WebsiteAuthSigningKey] = "DefaultSigningKey";
             PropertyAssert.Roundtrips(this.settings, s => s.SigningKey, PropertySetter.NullRoundtrips, defaultValue: "DefaultSigningKey", roundtripValue: "Value");
         }
 

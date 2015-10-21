@@ -28,6 +28,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
 {
     public class MobileAppConfigSetupTests
     {
+        private const string TestWebsiteUrl = "http://localhost/";
         private static MobileAppSettingsDictionary settings;
         private static IMobileAppTokenHandler tokenHandler;
 
@@ -83,14 +84,14 @@ namespace Microsoft.Azure.Mobile.Server.Config
                         config.Filters.Add(new HostAuthenticationFilter(MobileAppAuthenticationOptions.AuthenticationName));
                     }
 
-                    app.UseMobileAppAuthentication(config, mode);
+                    app.UseMobileAppAuthentication(config, AppServiceAuthenticationMode.LocalOnly, mode);
                 }
 
                 app.UseWebApi(config);
             }))
             {
                 HttpClient client = new HttpClient(new AddMobileAppAuthHeaderHttpHandler(testServer.Handler, isAuthenticated));
-                client.BaseAddress = new Uri("http://localhost");
+                client.BaseAddress = new Uri(TestWebsiteUrl);
 
                 // Act
                 var notificationsPut = await client.PutAsJsonAsync("push/installations/" + notification.InstallationId, notification);
@@ -102,31 +103,31 @@ namespace Microsoft.Azure.Mobile.Server.Config
                 var apiGetAuthorize = await client.GetAsync("api/secured/authorize");
 
                 // Assert
-                Assert.Equal(notificationsPut.StatusCode, HttpStatusCode.OK);
+                Assert.Equal(HttpStatusCode.OK, notificationsPut.StatusCode);
                 ValidateHeaders(notificationsPut, true);
 
-                Assert.Equal(apiNotificationsPut.StatusCode, HttpStatusCode.NotFound);
+                Assert.Equal(HttpStatusCode.NotFound, apiNotificationsPut.StatusCode);
                 ValidateHeaders(apiNotificationsPut, true);
 
                 // Succeeds: Api action with no AuthorizeLevel attribute
-                Assert.Equal(tableGet.StatusCode, HttpStatusCode.OK);
+                Assert.Equal(HttpStatusCode.OK, tableGet.StatusCode);
                 ValidateHeaders(tableGet, true);
 
                 // Authorize attribute will deny any unauthenticated requests.
-                Assert.Equal(tableGetApplication.StatusCode, isAuthenticated ? HttpStatusCode.OK : HttpStatusCode.Unauthorized);
+                Assert.Equal(isAuthenticated ? HttpStatusCode.OK : HttpStatusCode.Unauthorized, tableGetApplication.StatusCode);
                 ValidateHeaders(tableGetApplication, true);
 
                 // Succeeds: TableControllers will show up in the api route as well.
-                Assert.Equal(tableGetApiRoute.StatusCode, HttpStatusCode.OK);
+                Assert.Equal(HttpStatusCode.OK, tableGetApiRoute.StatusCode);
                 ValidateHeaders(tableGetApiRoute, true);
 
                 // Succeeds: Auth is not set up so no ServiceUser is created. But
                 // the AuthorizeAttribute lets these through.
-                Assert.Equal(apiGetAnonymous.StatusCode, HttpStatusCode.OK);
+                Assert.Equal(HttpStatusCode.OK, apiGetAnonymous.StatusCode);
                 ValidateHeaders(apiGetAnonymous, false);
 
                 // Succeeds: Api action with no AuthorizeLevel attribute
-                Assert.Equal(apiGetAuthorize.StatusCode, isAuthenticated ? HttpStatusCode.OK : HttpStatusCode.Unauthorized);
+                Assert.Equal(isAuthenticated ? HttpStatusCode.OK : HttpStatusCode.Unauthorized, apiGetAuthorize.StatusCode);
                 ValidateHeaders(apiGetAuthorize, false);
                 if (isAuthenticated)
                 {
@@ -161,7 +162,9 @@ namespace Microsoft.Azure.Mobile.Server.Config
         {
             Claim[] claims = new Claim[]
             {
-                new Claim(ClaimTypes.NameIdentifier, "Facebook:1234")
+                new Claim(ClaimTypes.NameIdentifier, "Facebook:1234"),
+                new Claim("aud", TestWebsiteUrl),
+                new Claim("iss", TestWebsiteUrl),
             };
             TokenInfo info = tokenHandler.CreateTokenInfo(claims, TimeSpan.FromDays(30), settings.SigningKey);
             JwtSecurityToken token = info.Token;
@@ -191,7 +194,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
             {
                 if (this.isAuthenticated)
                 {
-                    request.Headers.Add(MobileAppAuthenticationHandler.AuthenticationHeaderName, new[] { GetTestToken().RawData });
+                    request.Headers.Add(MobileAppAuthenticationHandler.AuthenticationHeaderName, GetTestToken().RawData);
                 }
 
                 return await base.SendAsync(request, cancellationToken);

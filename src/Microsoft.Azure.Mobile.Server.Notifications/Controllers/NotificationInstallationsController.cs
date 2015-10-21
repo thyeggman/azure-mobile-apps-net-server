@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Controllers;
@@ -86,7 +87,7 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
             // The installation object that will be sent to NH.
             Installation installation = this.CreateInstallation(notificationInstallation);
             HashSet<string> tagsAssociatedWithInstallationId = await this.GetTagsAssociatedWithInstallationId(notificationInstallation.InstallationId);
-            MobileAppUser serviceUser = this.GetCurrentUser();
+            ClaimsPrincipal serviceUser = this.User as ClaimsPrincipal;
             if (tagsAssociatedWithInstallationId.Count == 0)
             {
                 // Installation does not exist on NH.  Add it.
@@ -98,8 +99,12 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
                 // Tag the installation with the UserId if authenticated.
                 if (serviceUser != null && serviceUser.Identity.IsAuthenticated)
                 {
-                    string incomingUserTag = string.Format(UserIdTagPlaceholder, serviceUser.Id);
-                    installation.Tags.Add(incomingUserTag);
+                    Claim userIdClaim = serviceUser.FindFirst("uid");
+                    if (userIdClaim != null)
+                    {
+                        string incomingUserTag = string.Format(UserIdTagPlaceholder, userIdClaim.Value);
+                        installation.Tags.Add(incomingUserTag);
+                    }
                 }
 
                 try
@@ -131,7 +136,9 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
                     CopyTagsToInstallation(installation, tagsAssociatedWithInstallationId, false);
 
                     // Add the incoming UserId.
-                    string incomingUserTag = string.Format(UserIdTagPlaceholder, serviceUser.Id);
+                    ClaimsIdentity identity = serviceUser.Identity as ClaimsIdentity;
+                    string userId = identity.GetClaimValueOrNull("uid");
+                    string incomingUserTag = string.Format(UserIdTagPlaceholder, userId);
                     AddTagToInstallation(installation, incomingUserTag);
                 }
                 else
@@ -597,18 +604,6 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
                 {
                     throw new HttpResponseException(this.Request.CreateBadRequestResponse(RResources.NotificationHub_DoesNotSupportTemplateHeaders.FormatForUser(platform)));
                 }
-            }
-        }
-
-        internal MobileAppUser GetCurrentUser()
-        {
-            if (this.User == null)
-            {
-                return null;
-            }
-            else
-            {
-                return this.User as MobileAppUser;
             }
         }
     }
