@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 // Common assembly information.
 [assembly: AssemblyCompany("Microsoft Corporation")]
 [assembly: AssemblyCopyright("© Microsoft Corporation.  All rights reserved.")]
-[assembly: AssemblyProduct("Microsoft® Azure Mobile Services Backend")]
+[assembly: AssemblyProduct("Microsoft® Azure Mobile Apps Server SDK")]
 
 [assembly: CLSCompliant(true)]
 [assembly: ComVisible(false)]
@@ -25,6 +25,6 @@ using System.Runtime.InteropServices;
 // ===========================================================================
 
 #if !MANUAL_VERSIONING
-[assembly: AssemblyVersion("0.2.0.0")]
-[assembly: AssemblyFileVersion("0.2.0.0")]
+[assembly: AssemblyVersion("0.3.0.0")]
+[assembly: AssemblyFileVersion("0.3.0.0")]
 #endif
