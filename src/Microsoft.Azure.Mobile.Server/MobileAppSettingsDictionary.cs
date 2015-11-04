@@ -92,12 +92,12 @@ namespace Microsoft.Azure.Mobile.Server
         {
             get
             {
-                return this.GetSetting(MobileAppSettingsKeys.SigningKey);
+                return this.GetSetting(MobileAppSettingsKeys.WebsiteAuthSigningKey);
             }
 
             set
             {
-                this.SetSetting(MobileAppSettingsKeys.SigningKey, value);
+                this.SetSetting(MobileAppSettingsKeys.WebsiteAuthSigningKey, value);
             }
         }
 

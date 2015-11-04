@@ -126,7 +126,10 @@
   <data name="Authentication_InvalidToken" xml:space="preserve">
     <value>Authentication failed due to an invalid token.</value>
   </data>
-  <data name="Missing_EmaRuntimeUrl" xml:space="preserve">
-    <value>The 'EMA_RuntimeUrl' app setting is missing from the configuration.</value>
+  <data name="Authentication_MissingSigningKey" xml:space="preserve">
+    <value>'WEBSITE_AUTH_SIGNING_KEY' cannot be null or empty.</value>
+  </data>
+  <data name="GetIdentities_MissingHeader" xml:space="preserve">
+    <value>GetIdentity failed because the authentication header was missing or had an invalid value.</value>
   </data>
 </root>

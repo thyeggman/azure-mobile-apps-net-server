@@ -56,12 +56,11 @@ namespace Microsoft.Azure.Mobile.Server.Config
                 .Verifiable();
 
             // Act
-            this.appBuilder.UseMobileAppAuthentication(this.config);
+            this.appBuilder.UseMobileAppAuthentication(this.config, AppServiceAuthenticationMode.LocalOnly);
 
             // Assert
             // We expect three pieces of middleware to be added
             this.appBuilderMock.Verify(p => p.Use(It.IsAny<object>(), It.IsAny<object[]>()), Times.Once);
-            Assert.Equal("Service", options.Realm);
             Assert.Equal("MobileApp", options.AuthenticationType);
         }
     }

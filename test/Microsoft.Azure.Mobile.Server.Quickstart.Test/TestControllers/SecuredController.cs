@@ -2,6 +2,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ---------------------------------------------------------------------------- 
 
+using System.Linq;
+using System.Security.Claims;
 using System.Web.Http;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Newtonsoft.Json.Linq;
@@ -21,19 +23,20 @@ namespace Microsoft.Azure.Mobile.Server.TestControllers
         [Route("api/secured/authorize")]
         public string GetApplication()
         {
-            var user = this.User as MobileAppUser;
-            return user.MobileAppAuthenticationToken;
+            return this.Request.Headers.GetValues("x-zumo-auth").FirstOrDefault<string>();
         }
 
         private IHttpActionResult GetUserDetails()
         {
-            MobileAppUser user = this.User as MobileAppUser;
+            ClaimsPrincipal user = this.User as ClaimsPrincipal;
             JObject details = null;
             if (user != null)
             {
+                ClaimsIdentity identity = user.Identity as ClaimsIdentity;
+                string userId = identity.GetClaimValueOrNull("uid");
                 details = new JObject
                 {
-                    { "id", user.Id }               
+                    { "id", userId }               
                 };
             }
 

@@ -8,15 +8,16 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.Serialization;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Microsoft.Azure.Mobile.Server.AppService;
 using Microsoft.Azure.Mobile.Server.Authentication.AppService;
 using Microsoft.Azure.Mobile.Server.Config;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
@@ -29,25 +30,32 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
             HttpConfiguration config = new HttpConfiguration();
             config.SetMobileAppSettingsProvider(new MobileAppSettingsProvider());
 
-            string accessToken = "11111";
-            string facebookId = "22222";
-            TokenResult tokenResult = CreateTokenResult(facebookId, accessToken);
+            string accessToken = "facebookAccessToken";
+            string authToken = "zumoAuthToken";
+            string facebookId = "facebookUserId";
+            string providerName = "Facebook";
+            TokenEntry tokenEntry = new TokenEntry(providerName);
+            tokenEntry.AccessToken = accessToken;
+            tokenEntry.AuthenticationToken = authToken;
+            tokenEntry.UserId = facebookId;
 
-            MockHttpMessageHandler handlerMock = new MockHttpMessageHandler(CreateResponse(tokenResult));
+            MockHttpMessageHandler handlerMock = new MockHttpMessageHandler(CreateResponse(tokenEntry));
 
-            var gatewayUri = "http://test";
-            Mock<AppServiceHttpClient> appServiceClientMock = new Mock<AppServiceHttpClient>(new Uri(gatewayUri));
+            var webappUri = "http://test";
+            Mock<AppServiceHttpClient> appServiceClientMock = new Mock<AppServiceHttpClient>(new Uri(webappUri));
             appServiceClientMock.CallBase = true;
             appServiceClientMock.Setup(c => c.CreateHttpClient())
                 .Returns(new HttpClient(handlerMock));
 
             // Act
-            TokenResult result = await appServiceClientMock.Object.GetRawTokenAsync(accessToken, "Facebook");
+            TokenEntry result = await appServiceClientMock.Object.GetRawTokenAsync(accessToken, "Facebook");
 
             // Assert
-            Assert.Equal(accessToken, result.Properties[TokenResult.Authentication.AccessTokenName]);
-            Assert.Equal(gatewayUri + "/api/tokens?tokenName=Facebook&api-version=2015-01-14", handlerMock.ActualRequest.RequestUri.ToString());
-            Assert.Equal(accessToken, handlerMock.ActualRequest.Headers.GetValues("X-ZUMO-AUTH").Single());
+            Assert.Equal(accessToken, result.AccessToken);
+            Assert.Equal(authToken, result.AuthenticationToken);
+            Assert.Equal(facebookId, result.UserId);
+            Assert.Equal(webappUri + "/.auth/me?provider=facebook", handlerMock.ActualRequest.RequestUri.ToString());
+            Assert.Equal(accessToken, handlerMock.ActualRequest.Headers.GetValues("x-zumo-auth").Single());
             Assert.Equal("MobileAppNetServerSdk", handlerMock.ActualRequest.Headers.GetValues("User-Agent").Single());
         }
 
@@ -79,45 +87,27 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
 
         [Theory]
         [InlineData(null, "Facebook", "authToken")]
-        [InlineData("123456", null, "tokenName")]
+        [InlineData("123456", null, "tokenProviderName")]
         [InlineData(null, null, "authToken")]
-        public async Task GetRawTokenAsync_Throws_IfParametersAreNull(string first, string second, string parameterThatThrows)
+        public async Task GetRawTokenAsync_Throws_IfParametersAreNull(string authToken, string tokenProviderName, string parameterThatThrows)
         {
             AppServiceHttpClient appServiceClient = new AppServiceHttpClient(new Uri("http://testuri"));
 
             // Act
-            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => appServiceClient.GetRawTokenAsync(first, second));
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => appServiceClient.GetRawTokenAsync(authToken, tokenProviderName));
 
             // Assert
             Assert.NotNull(ex);
             Assert.Equal(parameterThatThrows, ex.ParamName);
         }
 
-        private static HttpResponseMessage CreateResponse(TokenResult tokenResult)
+        private static HttpResponseMessage CreateResponse(TokenEntry tokenEntry)
         {
             HttpResponseMessage response = new HttpResponseMessage();
-            response.Content = new StringContent(JsonConvert.SerializeObject(tokenResult));
+            response.Content = new StringContent(JsonConvert.SerializeObject(tokenEntry));
             response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
             return response;
-        }
-
-        private static TokenResult CreateTokenResult(string nameIdentifier, string accessToken)
-        {
-            var claims = new Dictionary<string, string>
-            {
-                { ClaimTypes.NameIdentifier, nameIdentifier }
-            };
-            var properties = new Dictionary<string, string>
-            {
-                { TokenResult.Authentication.AccessTokenName, accessToken },
-            };
-
-            return new TokenResult
-            {
-                Claims = claims,
-                Properties = properties
-            };
         }
 
         public class MockHttpMessageHandler : HttpMessageHandler

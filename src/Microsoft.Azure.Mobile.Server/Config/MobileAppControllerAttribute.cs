@@ -82,7 +82,6 @@ namespace Microsoft.Azure.Mobile.Server.Config
 
             if (!settingsProvider.GetMobileAppSettings().SkipVersionCheck)
             {
-                var keys = request.GetQueryNameValuePairs();
                 string version = request.GetQueryNameValuePairs()
                                             .Where(p => p.Key.Equals(ApiVersionName, StringComparison.OrdinalIgnoreCase))
                                             .Select(p => p.Value)

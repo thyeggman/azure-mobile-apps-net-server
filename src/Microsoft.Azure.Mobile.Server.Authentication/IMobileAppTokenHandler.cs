@@ -11,7 +11,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
 {
     /// <summary>
     /// Provides an abstraction for handling security tokens. This abstraction can be used for validating security
-    /// tokens and creating <see cref="MobileAppUser"/> instances.
+    /// tokens and creating <see cref="ClaimsPrincipal"/> instances.
     /// </summary>
     public interface IMobileAppTokenHandler
     {
@@ -28,18 +28,13 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
         /// Validates a string representation of a mobile service authentication token used to authenticate a user request.
         /// </summary>
         /// <param name="token">A <see cref="string"/> representation of the authentication token to validate.</param>
-        /// <param name="secretKey">The secret key with which the token has been signed.</param>
+        /// <param name="audience">The valid audience to accept in token validation.</param>
+        /// <param name="issuer">The valid issuer to accept in token validation.</param>
+        /// <param name="options">The <see cref="MobileAppAuthenticationOptions"/> object that has the signing key,
+        /// issuer, and audience.</param>
         /// <param name="claimsPrincipal">The resulting <see cref="ClaimsPrincipal"/> if the token is valid; null otherwise.</param>
         /// <returns><c>true</c> if <paramref name="token"/> is valid; otherwise <c>false</c>/</returns>
-        bool TryValidateLoginToken(string token, string secretKey, out ClaimsPrincipal claimsPrincipal);
-
-        /// <summary>
-        /// Creates a <see cref="MobileAppUser"/> based on a given <paramref name="claimsIdentity"/>.
-        /// </summary>
-        /// <param name="claimsIdentity">The <see cref="ClaimsIdentity"/> to create the <see cref="MobileAppUser"/> from.</param>
-        /// <param name="authToken">The authentication token used to authenticate the user.</param>
-        /// <returns>A new <see cref="MobileAppUser"/> instance.</returns>
-        MobileAppUser CreateServiceUser(ClaimsIdentity claimsIdentity, string authToken);
+        bool TryValidateLoginToken(string token, string audience, string issuer, MobileAppAuthenticationOptions options, out ClaimsPrincipal claimsPrincipal);
 
         /// <summary>
         /// Creates a user id value contained within a <see cref="ProviderCredentials"/>. The user id is of the form

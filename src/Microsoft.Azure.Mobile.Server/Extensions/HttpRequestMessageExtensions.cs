@@ -18,6 +18,18 @@ namespace System.Net.Http
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class HttpRequestMessageExtensions
     {
+        public static readonly string ObjectIdentifierClaimType = @"http://schemas.microsoft.com/identity/claims/objectidentifier";
+        public static readonly string TenantIdClaimType = @"http://schemas.microsoft.com/identity/claims/tenantid";
+
+        public static string GetDomainName(this HttpRequestMessage request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException("request");
+            }
+            return request.RequestUri.GetLeftPart(UriPartial.Authority) + "/";
+        }
+        
         /// <summary>
         /// Gets the first HTTP header value as a single value or <c>null</c> if not present.
         /// </summary>

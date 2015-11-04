@@ -15,11 +15,6 @@ namespace Microsoft.Azure.Mobile.Server.Config
         public static readonly string HostName = "MS_WebsiteHostName";
 
         /// <summary>
-        /// The key identifying the application setting containing the signing key for the service.
-        /// </summary>
-        public static readonly string SigningKey = "MS_SigningKey";
-
-        /// <summary>
         /// The key identifying the application setting containing the subscription id for the service.
         /// </summary>
         public static readonly string SubscriptionId = "MS_SubscriptionId";
@@ -44,5 +39,10 @@ namespace Microsoft.Azure.Mobile.Server.Config
         /// The key identifying whether the system will enforce version checks on all incoming Mobile App API calls
         /// </summary>
         public static readonly string SkipVersionCheck = "MS_SkipVersionCheck";
+
+        /// <summary>
+        ///  The key identifying the signing key used for App Service Authentication/Authorization.
+        /// </summary>
+        public static readonly string WebsiteAuthSigningKey = "WEBSITE_AUTH_SIGNING_KEY";
     }
 }

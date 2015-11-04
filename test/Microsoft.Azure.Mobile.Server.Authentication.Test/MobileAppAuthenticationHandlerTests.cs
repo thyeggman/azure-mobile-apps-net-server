@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Security.Claims;
@@ -21,15 +22,17 @@ namespace Microsoft.Azure.Mobile.Server.Security
     {
         private HttpConfiguration config;
         private MobileAppTokenHandler tokenHandler;
-        private MobileAppAuthenticationHandlerMock handlerMock;
         private Mock<ILogger> loggerMock;
+
+        private const string TestWebsiteUrl = @"https://faketestapp.faketestazurewebsites.net/";
+        private const string TestSigningKey = "signing_key";
+        private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public MobileAppAuthenticationHandlerTests()
         {
             this.config = new HttpConfiguration();
             this.tokenHandler = new MobileAppTokenHandler(this.config);
             this.loggerMock = new Mock<ILogger>();
-            this.handlerMock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object, this.tokenHandler);
         }
 
         [Flags]
@@ -78,228 +81,179 @@ namespace Microsoft.Azure.Mobile.Server.Security
             }
         }
 
-        public static TheoryDataCollection<MobileAppAuthenticationOptions, bool> MobileAppAuthenticationOptionsData
-        {
-            get
-            {
-                string realKey = "signing_key";
-                return new TheoryDataCollection<MobileAppAuthenticationOptions, bool>
-                {
-                    { CreateOptions(false, realKey), true },
-                    { CreateOptions(false, "wrong_key"), false },
-                    { CreateOptions(true, realKey), true },
-                    { CreateOptions(true, "wrong_key"), true },
-                    { CreateOptions(false, null), false },
-                    { CreateOptions(true, null), true },
-                    { CreateOptions(false, string.Empty), false },
-                    { CreateOptions(true, string.Empty), true }
-                };
-            }
-        }
-
-        [Fact]
-        public void TryParseLoginToken_ReturnsExpectedClaims()
-        {
-            // Arrange
-            MobileAppAuthenticationOptions options = new MobileAppAuthenticationOptions();
-            options.SigningKey = "SOME_SIGNING_KEY";
-            // SkipTokenSignatureValidation defaults to false
-            JwtSecurityToken token = GetTestToken(options.SigningKey);
-
-            // Act
-            ClaimsPrincipal claimsPrincipal;
-            bool result = this.handlerMock.TryParseLoginToken(token.RawData, options, out claimsPrincipal);
-
-            // Assert
-            Assert.True(result);
-            MobileAppUser user = this.tokenHandler.CreateServiceUser((ClaimsIdentity)claimsPrincipal.Identity, token.RawData);
-            Assert.Equal("Facebook:1234", user.Id);
-            Assert.True(user.Identity.IsAuthenticated);
-
-            Claim[] claims = user.Claims.ToArray();
-            Assert.Equal(8, claims.Length);
-            Assert.Equal("Frank", claims.Single(p => p.Type == ClaimTypes.GivenName).Value);
-            Assert.Equal("Miller", claims.Single(p => p.Type == ClaimTypes.Surname).Value);
-            Assert.Equal("Admin", claims.Single(p => p.Type == ClaimTypes.Role).Value);
-            Assert.Equal("Facebook:1234", claims.Single(p => p.Type == "uid").Value);
-            Assert.Equal("MyClaimValue", claims.Single(p => p.Type == "my_custom_claim").Value);
-        }
-
-        [Fact]
-        public void TryParseLoginToken_NoTokenValidation_ReturnsExpectedClaims()
-        {
-            // Arrange
-            Mock<MobileAppTokenHandler> tokenHandlerMock = new Mock<MobileAppTokenHandler>(this.config);
-            MobileAppAuthenticationHandlerMock authHandlerMock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object, tokenHandlerMock.Object);
-            MobileAppAuthenticationOptions skipOptions = new MobileAppAuthenticationOptions();
-            skipOptions.SigningKey = "SOME_SIGNING_KEY";
-            skipOptions.SkipTokenSignatureValidation = true;
-
-            JwtSecurityToken skipToken = GetTestToken("SOME_OTHER_KEY");
-
-            // Act
-            ClaimsPrincipal skipClaimsPrincipal;
-            bool skipResult = authHandlerMock.TryParseLoginToken(skipToken.RawData, skipOptions, out skipClaimsPrincipal);
-
-            // Assert
-            tokenHandlerMock.Verify(h => h.TryValidateLoginToken(It.IsAny<string>(), It.IsAny<string>(), out skipClaimsPrincipal), Times.Never);
-            Assert.True(skipResult);
-            MobileAppUser user = this.tokenHandler.CreateServiceUser((ClaimsIdentity)skipClaimsPrincipal.Identity, skipToken.RawData);
-
-            Assert.Equal("Facebook:1234", user.Id);
-            Assert.True(user.Identity.IsAuthenticated);
-
-            Claim[] claims = user.Claims.ToArray();
-            Assert.Equal(8, claims.Length);
-            Assert.Equal("Frank", claims.Single(p => p.Type == ClaimTypes.GivenName).Value);
-            Assert.Equal("Miller", claims.Single(p => p.Type == ClaimTypes.Surname).Value);
-            Assert.Equal("Admin", claims.Single(p => p.Type == ClaimTypes.Role).Value);
-            Assert.Equal("Facebook:1234", claims.Single(p => p.Type == "uid").Value);
-            Assert.Equal("MyClaimValue", claims.Single(p => p.Type == "my_custom_claim").Value);
-        }
-
-        [Fact]
-        public void TryParseLoginToken_ReturnsSameClaimsIdentity_WhetherValidatingTokensOrNot()
-        {
-            // Arrange
-            MobileAppAuthenticationOptions options = new MobileAppAuthenticationOptions();
-            options.SigningKey = "SOME_SIGNING_KEY";
-            // SkipTokenSignatureValidation defaults to false
-            JwtSecurityToken token = GetTestToken(options.SigningKey);
-
-            MobileAppAuthenticationOptions skipOptions = new MobileAppAuthenticationOptions();
-            skipOptions.SigningKey = "SOME_SIGNING_KEY";
-            skipOptions.SkipTokenSignatureValidation = true;
-            JwtSecurityToken skipToken = GetTestToken("SOME_OTHER_KEY");
-
-            // Act
-            ClaimsPrincipal claimsPrincipal;
-            this.handlerMock.TryParseLoginToken(token.RawData, options, out claimsPrincipal);
-            Assert.True(claimsPrincipal.Identity.IsAuthenticated);
-
-            ClaimsPrincipal skipClaimsPrincipal;
-            this.handlerMock.TryParseLoginToken(skipToken.RawData, skipOptions, out skipClaimsPrincipal);
-            Assert.True(claimsPrincipal.Identity.IsAuthenticated);
-
-            // Assert
-            ClaimsIdentity claimsIdentity = (ClaimsIdentity)claimsPrincipal.Identity;
-            ClaimsIdentity skipClaimsIdentity = (ClaimsIdentity)skipClaimsPrincipal.Identity;
-
-            Assert.Equal(claimsIdentity.Actor, skipClaimsIdentity.Actor);
-            Assert.Equal(claimsIdentity.AuthenticationType, skipClaimsIdentity.AuthenticationType);
-            Assert.Equal(claimsIdentity.BootstrapContext, skipClaimsIdentity.BootstrapContext);
-            Assert.Equal(claimsIdentity.IsAuthenticated, skipClaimsIdentity.IsAuthenticated);
-            Assert.Equal(claimsIdentity.Label, skipClaimsIdentity.Label);
-            Assert.Equal(claimsIdentity.Name, skipClaimsIdentity.Name);
-            Assert.Equal(claimsIdentity.NameClaimType, skipClaimsIdentity.NameClaimType);
-            Assert.Equal(claimsIdentity.RoleClaimType, skipClaimsIdentity.RoleClaimType);
-            Assert.Equal(claimsIdentity.Claims.Count(), skipClaimsIdentity.Claims.Count());
-            Claim[] claims = claimsIdentity.Claims.OrderBy(c => c.Type).ToArray();
-            Claim[] skipClaims = skipClaimsIdentity.Claims.OrderBy(c => c.Type).ToArray();
-            for (int i = 0; i < claims.Length; i++)
-            {
-                Claim claim = claims[i];
-                Claim skipClaim = skipClaims[i];
-                Assert.Equal(claim.Type, skipClaim.Type);
-                Assert.Equal(claim.Issuer, skipClaim.Issuer);
-                Assert.Equal(claim.OriginalIssuer, skipClaim.OriginalIssuer);
-                Assert.Equal(claim.Subject, claimsIdentity);
-                Assert.Equal(skipClaim.Subject, skipClaimsIdentity);
-                Assert.Equal(claim.ValueType, skipClaim.ValueType);
-                Assert.Equal(claim.Properties.Count, skipClaim.Properties.Count);
-                if (claim.Type == "nbf")
-                {
-                    // nbf can be slightly off
-                    int claimNbf = Int32.Parse(claim.Value);
-                    int skipClaimNbf = Int32.Parse(skipClaim.Value);
-                    Assert.True(Math.Abs(claimNbf - skipClaimNbf) < 10);
-                }
-                else
-                {
-                    Assert.Equal(claim.Value, skipClaim.Value);
-                }
-            }
-        }
-
         [Theory]
-        [MemberData("MobileAppAuthenticationOptionsData")]
-        public void Authenticate_CorrectlyAuthenticates(MobileAppAuthenticationOptions options, bool expectAuthenticated)
+        [InlineData(TestSigningKey, true)]
+        [InlineData("wrong_key", false)]
+        [InlineData(null, false)]
+        [InlineData("", false)]
+        public void Authenticate_CorrectlyAuthenticates(string otherSigningKey, bool expectAuthenticated)
         {
             // Arrange
+            MobileAppAuthenticationOptions optionsDefault = CreateTestOptions();
+            optionsDefault.SigningKey = TestSigningKey;
+
+            MobileAppAuthenticationOptions optionsOtherSigningKey = CreateTestOptions();
+            optionsOtherSigningKey.SigningKey = otherSigningKey;
+
             var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object, this.tokenHandler);
-            var request = CreateAuthRequest("signing_key");
-            request.User = new ClaimsPrincipal();
+            var request = CreateAuthRequest(optionsDefault, new Uri(TestWebsiteUrl));
 
             // Act
-            mock.Authenticate(request, options);
+            AuthenticationTicket authTicket = mock.Authenticate(request, optionsOtherSigningKey);
 
             // Assert            
             if (expectAuthenticated)
             {
-                Assert.NotNull(request.User.Identity);
-                Assert.True(request.User.Identity.IsAuthenticated);
-                Assert.IsType(typeof(MobileAppUser), request.User);
+                // ensure the AuthenticationTicket is set correctly
+                Assert.NotNull(authTicket);
+                Assert.NotNull(authTicket.Identity);
+                Assert.True(authTicket.Identity.IsAuthenticated);
             }
             else
             {
-                Assert.Null(request.User);
+                Assert.NotNull(authTicket);
+                Assert.NotNull(authTicket.Identity);
+                Assert.False(authTicket.Identity.IsAuthenticated);
             }
         }
 
         [Fact]
-        public void Authenticate_LeavesUserNull_IfException()
+        public void Authenticate_FailsToAuthenticate_ValidIdentity_WithoutSigningKey()
         {
             // Arrange
-            var mockTokenHandler = new Mock<MobileAppTokenHandler>(this.config);
-            mockTokenHandler.CallBase = true;
-            mockTokenHandler
-                .Setup(t => t.CreateServiceUser(It.IsAny<ClaimsIdentity>(), It.IsAny<string>()))
-                .Throws(new InvalidOperationException())
-                .Verifiable();
-            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object, mockTokenHandler.Object);
-            var request = CreateAuthRequest("signing_key");
-            request.User = new ClaimsPrincipal();
+            MobileAppAuthenticationOptions options = CreateTestOptions(TestSigningKey);
+           
+            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object, this.tokenHandler);
+            var request = CreateAuthRequest(options, new Uri(TestWebsiteUrl), CreateTestIdentity());
 
+            options.SigningKey = null;
+                
             // Act
-            mock.Authenticate(request, CreateOptions(false, "signing_key"));
+            AuthenticationTicket authticket = mock.Authenticate(request, options);
 
             // Assert            
-            mockTokenHandler.VerifyAll();
-            Assert.Null(request.User);
+            Assert.NotNull(authticket);
+            Assert.NotNull(authticket.Identity);
+            Assert.False(authticket.Identity.IsAuthenticated, "Expected Authenticate to fail without signing key specified in MobileAppAuthenticationOptions");
         }
 
-        private static JwtSecurityToken GetTestToken(string secretKey)
+        [Fact]
+        public void Authenticate_FailsToAuthenticate_InvalidIdentity_WithValidSigningKey()
         {
-            Claim[] claims = new Claim[]
+            // Arrange
+            MobileAppAuthenticationOptions options = CreateTestOptions();
+            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object, this.tokenHandler);
+            ClaimsIdentity badIdentity = CreateTestIdentity(issuer: TestWebsiteUrl, audience: "https://invalidAudience/");
+            var request = CreateAuthRequest(options, new Uri(TestWebsiteUrl), badIdentity);
+
+            // Act
+            AuthenticationTicket authticket = mock.Authenticate(request, options);
+
+            // Assert            
+            Assert.NotNull(authticket);
+            Assert.NotNull(authticket.Identity);
+            Assert.False(authticket.Identity.IsAuthenticated, "Expected Authenticate to fail without signing key specified in MobileAppAuthenticationOptions");
+        }
+
+        private static ClaimsIdentity CreateTestIdentity(string audience = null, string issuer = null, bool validNotBefore = true, bool validExpiration = true)
+        {
+            ClaimsIdentity myIdentity = new ClaimsIdentity();
+            if (!string.IsNullOrEmpty(issuer))
             {
-                new Claim("uid", "Facebook:1234"),
-                new Claim(ClaimTypes.GivenName, "Frank"),
-                new Claim(ClaimTypes.Surname, "Miller"),
-                new Claim(ClaimTypes.Role, "Admin"),
-                new Claim("my_custom_claim", "MyClaimValue")
-            };
+                myIdentity.AddClaim(new Claim("iss", issuer));
+            }
 
-            string zumoIssuerValue = "urn:microsoft:windows-azure:zumo";
-            TokenInfo info = MobileAppTokenHandler.CreateTokenFromClaims(claims, secretKey, zumoIssuerValue, zumoIssuerValue, null);
+            if (!string.IsNullOrEmpty(audience))
+            {
+                myIdentity.AddClaim(new Claim("aud", audience));
+            }
 
-            return info.Token;
+            DateTime now = DateTime.UtcNow;
+            if (validNotBefore)
+            {
+                DateTime nbf = now.Subtract(TimeSpan.FromHours(1));
+                string nbfAsString = Convert.ToInt64(nbf.Subtract(Epoch).TotalSeconds).ToString();
+                myIdentity.AddClaim(new Claim("nbf", nbfAsString));
+            }
+
+            if (validExpiration)
+            {
+                DateTime exp = now.Add(TimeSpan.FromHours(1));
+                string expAsString = Convert.ToInt64(exp.Subtract(Epoch).TotalSeconds).ToString();
+                myIdentity.AddClaim(new Claim("exp", expAsString));
+            }
+
+            return myIdentity;
         }
 
-        private static IOwinRequest CreateAuthRequest(string signingKey)
+        /// <summary>
+        /// Makes a test token out of the specified claims, or a set of default claims if claims is unspecified.
+        /// </summary>
+        /// <param name="claims">The claims identity to make a token. Issuer and Audience in the claims will not be changed.</param>
+        /// <param name="options">The <see cref="MobileAppAuthenticationOptions"/> object that wraps the signing key.</param>
+        /// <param name="audience">The accepted valid audience used if claims is unspecified.</param>
+        /// <param name="issuer">The accepted valid issuer used if claims is unspecified.</param>
+        /// <returns></returns>
+        private static JwtSecurityToken GetTestToken(MobileAppAuthenticationOptions options, string audience, string issuer, List<Claim> claims = null)
         {
-            var token = GetTestToken(signingKey);
-            IOwinRequest request = new OwinRequest();
+            TokenInfo generatedToken;
+
+            if (claims.Count == 0)
+            {
+                claims = new List<Claim>();
+                claims.Add(new Claim("uid", "Facebook:1234"));
+                claims.Add(new Claim(ClaimTypes.GivenName, "Frank"));
+                claims.Add(new Claim(ClaimTypes.Surname, "Miller"));
+                claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+                claims.Add(new Claim("my_custom_claim", "MyClaimValue"));
+                claims.Add(new Claim("iss", issuer));
+                claims.Add(new Claim("aud", audience));
+                generatedToken = MobileAppTokenHandler.CreateTokenFromClaims(claims, options.SigningKey, null, audience, issuer);
+            }
+            else
+            {
+                string issFromClaims = string.Empty;
+                string audFromClaims = string.Empty;
+                Claim issClaim = claims.FirstOrDefault<Claim>(p => p.Type == "iss");
+                if (issClaim != null)
+                {
+                    issFromClaims = issClaim.Value;
+                }
+                Claim audClaim = claims.FirstOrDefault<Claim>(p => p.Type == "aud");
+                if (audClaim != null)
+                {
+                    audFromClaims = audClaim.Value;
+                }
+
+                generatedToken = MobileAppTokenHandler.CreateTokenFromClaims(claims, options.SigningKey, null, audFromClaims, issFromClaims);
+            }
+
+            return generatedToken.Token;
+        }
+
+        private static IOwinRequest CreateAuthRequest(MobileAppAuthenticationOptions options, Uri webappUri, ClaimsIdentity identity = null)
+        {
+            string webappBaseUrl = webappUri.GetLeftPart(UriPartial.Authority) + "/";
+
+            if (identity == null)
+            {
+                identity = new ClaimsIdentity();
+            }
+
+            OwinContext context = new OwinContext();
+            IOwinRequest request = context.Request;
+            request.Host = HostString.FromUriComponent(webappUri.Host);
+            request.Path = PathString.FromUriComponent(webappUri);
+            request.Protocol = "HTTP/1.1";
+            request.Method = "GET";
+            request.Scheme = "https";
+            request.PathBase = PathString.Empty;
+            request.QueryString = QueryString.FromUriComponent(webappUri);
+            request.Body = new System.IO.MemoryStream();
+
+            var token = GetTestToken(options, webappBaseUrl, webappBaseUrl, identity.Claims.ToList<Claim>());
             request.Headers.Append(MobileAppAuthenticationHandler.AuthenticationHeaderName, token.RawData);
             return request;
-        }
-
-        private static MobileAppAuthenticationOptions CreateOptions(bool skipTokenValidation, string signingKey)
-        {
-            return new MobileAppAuthenticationOptions
-                {
-                    SigningKey = signingKey,
-                    SkipTokenSignatureValidation = skipTokenValidation
-                };
         }
 
         internal class MobileAppAuthenticationHandlerMock : MobileAppAuthenticationHandler
@@ -313,11 +267,20 @@ namespace Microsoft.Azure.Mobile.Server.Security
             {
                 return base.Authenticate(request, options);
             }
+        }
 
-            public new bool TryParseLoginToken(string token, MobileAppAuthenticationOptions options, out ClaimsPrincipal claimsPrincipal)
+        private static MobileAppAuthenticationOptions CreateTestOptions(string signingKey = null)
+        {
+            MobileAppAuthenticationOptions options = new MobileAppAuthenticationOptions
             {
-                return base.TryParseLoginToken(token, options, out claimsPrincipal);
+                SigningKey = signingKey,
+            };
+
+            if (string.IsNullOrEmpty(signingKey))
+            {
+                options.SigningKey = TestSigningKey;
             }
+            return options;
         }
     }
 }

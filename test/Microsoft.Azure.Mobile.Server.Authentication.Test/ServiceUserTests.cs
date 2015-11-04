@@ -7,20 +7,26 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IdentityModel.Tokens;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Microsoft.Azure.Mobile.Server.AppService;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Authentication.AppService;
 using Moq;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.Azure.Mobile.Server.Security
 {
     public class ServiceUserTests
     {
-        private string key = "lk;jadlfkjla;kjljlk";
+        private const string ObjectIdentifierClaimType = @"http://schemas.microsoft.com/identity/claims/objectidentifier";
+        private const string TenantIdClaimType = @"http://schemas.microsoft.com/identity/claims/tenantid";
+        private const string AuthHeaderName = "x-zumo-auth";
+        private const string TestSigningKey = "lk;jadlfkjla;kjljlk";
+        private const string TestLocalhostUrl = "http://localhost/";
         private FacebookCredentials facebookCredentials;
         private Mock<MobileAppTokenHandler> tokenHandlerMock;
         private IMobileAppTokenHandler tokenHandler;
@@ -40,27 +46,13 @@ namespace Microsoft.Azure.Mobile.Server.Security
             // Arrange
 
             // Act
-            MobileAppUser user = this.CreateTestUser();
+            ClaimsPrincipal user = this.CreateTestUser();
 
             // Assert
+            ClaimsIdentity identity = user.Identity as ClaimsIdentity;
             this.tokenHandlerMock.Verify();
-            Assert.Equal(this.facebookCredentials.UserId, user.Id);
+            Assert.Equal(this.facebookCredentials.UserId, identity.GetClaimValueOrNull("uid"));
             Assert.True(user.Identity.IsAuthenticated);
-        }
-
-        [Fact]
-        public async Task GetIdentityAsync_Calls_GetRawTokenAsync()
-        {
-            // Arrange
-            MockServiceUser mockServiceUser = new MockServiceUser();
-            mockServiceUser.MobileAppAuthenticationToken = "123456";
-
-            // Act
-            await mockServiceUser.GetIdentityAsync<FacebookCredentials>();
-
-            // Assert
-            mockServiceUser.AppServiceClientMock
-                .Verify(a => a.GetRawTokenAsync(mockServiceUser.MobileAppAuthenticationToken, "Facebook"), Times.Once);
         }
 
         [Fact]
@@ -70,18 +62,18 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
             FacebookCredentials credentials = new FacebookCredentials();
 
-            TokenResult tokenResult = new TokenResult();
-            tokenResult.Properties.Add(TokenResult.Authentication.AccessTokenName, "TestAccessToken");
-            Dictionary<string, string> claims = new Dictionary<string, string>
+            TokenEntry tokenEntry = new TokenEntry("facebook");
+            tokenEntry.AccessToken = "TestAccessToken";
+            List<ClaimSlim> claims = new List<ClaimSlim>
             {
-                { "Claim1", "Value1" },
-                { "Claim2", "Value1" },
-                { "Claim3", "Value1" },
-                { ClaimTypes.NameIdentifier, UserIdClaimValue }
+                new ClaimSlim("Claim1", "Value1"),
+                new ClaimSlim("Claim2", "Value2"),
+                new ClaimSlim("Claim3", "Value3"),
             };
-            tokenResult.Claims = claims;
+            tokenEntry.UserClaims = claims;
+            tokenEntry.UserId = UserIdClaimValue;
 
-            MobileAppUser.PopulateProviderCredentials(tokenResult, credentials);
+            IPrincipalExtensions.PopulateProviderCredentials(tokenEntry, credentials);
 
             Assert.Equal("TestAccessToken", credentials.AccessToken);
             Assert.Equal(UserIdClaimValue, credentials.UserId);
@@ -95,20 +87,20 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
             GoogleCredentials credentials = new GoogleCredentials();
 
-            TokenResult tokenResult = new TokenResult();
-            tokenResult.Properties.Add(TokenResult.Authentication.AccessTokenName, "TestAccessToken");
-            tokenResult.Properties.Add(TokenResult.Authentication.RefreshTokenName, "TestRefreshToken");
-            tokenResult.Properties.Add("AccessTokenExpiration", "2015-03-12T16:49:28.504Z");
-            Dictionary<string, string> claims = new Dictionary<string, string>
+            TokenEntry tokenEntry = new TokenEntry("google");
+            tokenEntry.AccessToken = "TestAccessToken";
+            tokenEntry.RefreshToken = "TestRefreshToken";
+            tokenEntry.ExpiresOn = DateTime.Parse("2015-03-12T16:49:28.504Z");
+            List<ClaimSlim> claims = new List<ClaimSlim>
             {
-                { "Claim1", "Value1" },
-                { "Claim2", "Value1" },
-                { "Claim3", "Value1" },
-                { ClaimTypes.NameIdentifier, UserIdClaimValue }
+                new ClaimSlim("Claim1", "Value1"),
+                new ClaimSlim("Claim2", "Value2"),
+                new ClaimSlim("Claim3", "Value3"),
             };
-            tokenResult.Claims = claims;
+            tokenEntry.UserClaims = claims;
+            tokenEntry.UserId = UserIdClaimValue;
 
-            MobileAppUser.PopulateProviderCredentials(tokenResult, credentials);
+            IPrincipalExtensions.PopulateProviderCredentials(tokenEntry, credentials);
 
             Assert.Equal("TestAccessToken", credentials.AccessToken);
             Assert.Equal("TestRefreshToken", credentials.RefreshToken);
@@ -124,20 +116,20 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
             MicrosoftAccountCredentials credentials = new MicrosoftAccountCredentials();
 
-            TokenResult tokenResult = new TokenResult();
-            tokenResult.Properties.Add(TokenResult.Authentication.AccessTokenName, "TestAccessToken");
-            tokenResult.Properties.Add(TokenResult.Authentication.RefreshTokenName, "TestRefreshToken");
-            tokenResult.Properties.Add("AccessTokenExpiration", "2015-03-12T16:49:28.504Z");
-            Dictionary<string, string> claims = new Dictionary<string, string>
+            TokenEntry tokenEntry = new TokenEntry("microsoft");
+            tokenEntry.AccessToken = "TestAccessToken";
+            tokenEntry.RefreshToken = "TestRefreshToken";
+            tokenEntry.ExpiresOn = DateTime.Parse("2015-03-12T16:49:28.504Z");
+            List<ClaimSlim> claims = new List<ClaimSlim>
             {
-                { "Claim1", "Value1" },
-                { "Claim2", "Value1" },
-                { "Claim3", "Value1" },
-                { ClaimTypes.NameIdentifier, UserIdClaimValue }
+                new ClaimSlim("Claim1", "Value1"),
+                new ClaimSlim("Claim2", "Value2"),
+                new ClaimSlim("Claim3", "Value3"),
             };
-            tokenResult.Claims = claims;
+            tokenEntry.UserClaims = claims;
+            tokenEntry.UserId = UserIdClaimValue;
 
-            MobileAppUser.PopulateProviderCredentials(tokenResult, credentials);
+            IPrincipalExtensions.PopulateProviderCredentials(tokenEntry, credentials);
 
             Assert.Equal("TestAccessToken", credentials.AccessToken);
             Assert.Equal("TestRefreshToken", credentials.RefreshToken);
@@ -153,24 +145,25 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
             AzureActiveDirectoryCredentials credentials = new AzureActiveDirectoryCredentials();
 
-            TokenResult tokenResult = new TokenResult();
-            tokenResult.Properties.Add(TokenResult.Authentication.AccessTokenName, "TestAccessToken");
-            tokenResult.Properties.Add("TenantId", "TestTenantId");
-            tokenResult.Properties.Add("ObjectId", "TestObjectId");
-            Dictionary<string, string> claims = new Dictionary<string, string>
+            TokenEntry tokenEntry = new TokenEntry("aad");
+            tokenEntry.AccessToken = "TestAccessToken";
+            tokenEntry.ExpiresOn = DateTime.Parse("2015-03-12T16:49:28.504Z");
+            List<ClaimSlim> claims = new List<ClaimSlim>
             {
-                { "Claim1", "Value1" },
-                { "Claim2", "Value1" },
-                { "Claim3", "Value1" },
-                { ClaimTypes.NameIdentifier, UserIdClaimValue }
+                new ClaimSlim("Claim1", "Value1"),
+                new ClaimSlim("Claim2", "Value2"),
+                new ClaimSlim("Claim3", "Value3"),
+                new ClaimSlim(TenantIdClaimType, "TestTenantId"),
+                new ClaimSlim(ObjectIdentifierClaimType, "TestObjectId"),
             };
-            tokenResult.Claims = claims;
+            tokenEntry.UserClaims = claims;
+            tokenEntry.UserId = UserIdClaimValue;
 
-            MobileAppUser.PopulateProviderCredentials(tokenResult, credentials);
+            IPrincipalExtensions.PopulateProviderCredentials(tokenEntry, credentials);
 
             Assert.Equal("TestAccessToken", credentials.AccessToken);
-            Assert.Equal("TestTenantId", credentials.TenantId);
-            Assert.Equal("TestObjectId", credentials.ObjectId);
+            Assert.Equal("TestTenantId", credentials.Claims.GetValueOrDefault(TenantIdClaimType));
+            Assert.Equal("TestObjectId", credentials.Claims.GetValueOrDefault(ObjectIdentifierClaimType));
             Assert.Equal(UserIdClaimValue, credentials.UserId);
             Assert.Equal(claims.Count, credentials.Claims.Count);
         }
@@ -180,18 +173,18 @@ namespace Microsoft.Azure.Mobile.Server.Security
         {
             TwitterCredentials credentials = new TwitterCredentials();
 
-            TokenResult tokenResult = new TokenResult();
-            tokenResult.Properties.Add(TokenResult.Authentication.AccessTokenName, "TestAccessToken");
-            tokenResult.Properties.Add("AccessTokenSecret", "TestAccessTokenSecret");
-            Dictionary<string, string> claims = new Dictionary<string, string>
+            TokenEntry tokenEntry = new TokenEntry("twitter");
+            tokenEntry.AccessToken = "TestAccessToken";
+            tokenEntry.AccessTokenSecret = "TestAccessTokenSecret";
+            List<ClaimSlim> claims = new List<ClaimSlim>
             {
-                { "Claim1", "Value1" },
-                { "Claim2", "Value1" },
-                { "Claim3", "Value1" }
+                new ClaimSlim("Claim1", "Value1"),
+                new ClaimSlim("Claim2", "Value2"),
+                new ClaimSlim("Claim3", "Value3"),
             };
-            tokenResult.Claims = claims;
+            tokenEntry.UserClaims = claims;
 
-            MobileAppUser.PopulateProviderCredentials(tokenResult, credentials);
+            IPrincipalExtensions.PopulateProviderCredentials(tokenEntry, credentials);
 
             Assert.Equal("TestAccessToken", credentials.AccessToken);
             Assert.Equal("TestAccessTokenSecret", credentials.AccessTokenSecret);
@@ -203,13 +196,12 @@ namespace Microsoft.Azure.Mobile.Server.Security
         {
             // Arrange
             // This is what is returned when a token is not found.
-            TokenResult tokenResult = new TokenResult()
+            TokenEntry tokenEntry = null;
             {
-                Diagnostics = "Token not found in store. id=sid:90BF712CA4464DDCADED130D8E5D1D8E, name=Twitter"
             };
 
             // Act
-            bool result = MobileAppUser.IsTokenValid(tokenResult);
+            bool result = IPrincipalExtensions.IsTokenValid(tokenEntry);
 
             // Assert
             Assert.False(result);
@@ -219,40 +211,18 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public void IsTokenValid_ReturnsTrue_WhenTokenIsValid()
         {
             // Arrange
-            TokenResult tokenResult = new TokenResult();
+            TokenEntry tokenEntry = new TokenEntry("facebook");
+            tokenEntry.UserId = "userId";
+            tokenEntry.AuthenticationToken = "zumoAuthToken";
+            tokenEntry.AccessToken = "accessToken";
 
             // Act
-            bool result = MobileAppUser.IsTokenValid(tokenResult);
+            bool result = IPrincipalExtensions.IsTokenValid(tokenEntry);
 
             // Assert
             Assert.True(result);
         }
 
-        [Fact]
-        public async Task GetIdentitiesAsync_Throws_IfGatewayUrlNotInAppSettings()
-        {
-            // Arrange
-            ConfigurationManager.AppSettings["EMA_RuntimeUrl"] = null;
-            // ServiceUser should be authenticated to hit the exception
-            MobileAppUser user = new MobileAppUser(CreateMockClaimsIdentity(Enumerable.Empty<Claim>(), true));
-            user.MobileAppAuthenticationToken = "1234567890";
-            NullReferenceException ex = null;
-
-            // Act
-            try
-            {
-                ex = await Assert.ThrowsAsync<NullReferenceException>(() => user.GetIdentityAsync<FacebookCredentials>());
-            }
-            finally
-            {
-                // reset the config for future tests
-                ConfigurationManager.RefreshSection("appSettings");
-            }
-
-            // Assert
-            Assert.NotNull(ex);
-            Assert.Equal("The 'EMA_RuntimeUrl' app setting is missing from the configuration.", ex.Message);
-        }
 
         [Theory]
         [InlineData(null)]
@@ -260,11 +230,13 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public async Task GetIdentitiesAsync_ReturnsNull_IfMobileAppAuthenticationTokenIsNullOrEmpty(string token)
         {
             // Arrange
-            MobileAppUser user = new MobileAppUser(CreateMockClaimsIdentity(Enumerable.Empty<Claim>(), true));
-            user.MobileAppAuthenticationToken = token;
+            ClaimsPrincipal user = new ClaimsPrincipal(CreateMockClaimsIdentity(Enumerable.Empty<Claim>(), true));
+            HttpRequestMessage request = new HttpRequestMessage();
+            request.RequestUri = new Uri(TestLocalhostUrl);
+            request.Headers.Add(AuthHeaderName, token);
 
             // Act
-            var tokenResult = await user.GetIdentityAsync<FacebookCredentials>();
+            var tokenResult = await user.GetAppServiceIdentityAsync<FacebookCredentials>(request);
 
             // Assert
             Assert.Null(tokenResult);
@@ -274,10 +246,11 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public async Task GetIdentitiesAsync_ReturnsNull_IfUserNotAuthenticated()
         {
             // Arrange
-            MobileAppUser user = new MobileAppUser(CreateMockClaimsIdentity(Enumerable.Empty<Claim>(), false));
+            ClaimsPrincipal user = new ClaimsPrincipal(CreateMockClaimsIdentity(Enumerable.Empty<Claim>(), false));
+            HttpRequestMessage request = new HttpRequestMessage();
 
             // Act
-            var tokenResult = await user.GetIdentityAsync<FacebookCredentials>();
+            var tokenResult = await user.GetAppServiceIdentityAsync<FacebookCredentials>(request);
 
             // Assert
             Assert.Null(tokenResult);
@@ -286,19 +259,22 @@ namespace Microsoft.Azure.Mobile.Server.Security
         /// <summary>
         /// Create a test user
         /// </summary>
-        private MobileAppUser CreateTestUser()
+        private ClaimsPrincipal CreateTestUser()
         {
+            MobileAppAuthenticationOptions options = CreateTestOptions(); 
+
             Claim[] claims = new Claim[]
             {
-                new Claim(ClaimTypes.NameIdentifier, this.facebookCredentials.UserId)
+                new Claim("uid", this.facebookCredentials.UserId),
+                new Claim("aud", TestLocalhostUrl),
+                new Claim("iss", TestLocalhostUrl),
             };
-            TokenInfo info = this.tokenHandler.CreateTokenInfo(claims, TimeSpan.FromDays(10), this.key);
+
+            TokenInfo info = this.tokenHandler.CreateTokenInfo(claims, TimeSpan.FromDays(10), options.SigningKey);
             JwtSecurityToken token = info.Token;
 
-            ClaimsPrincipal claimsPrincipal = null;
-            this.tokenHandler.TryValidateLoginToken(token.RawData, this.key, out claimsPrincipal);
-
-            MobileAppUser user = this.tokenHandler.CreateServiceUser((ClaimsIdentity)claimsPrincipal.Identity, null);
+            ClaimsPrincipal user = null;
+            this.tokenHandler.TryValidateLoginToken(token.RawData, TestLocalhostUrl, TestLocalhostUrl, options, out user);
 
             return user;
         }
@@ -310,24 +286,14 @@ namespace Microsoft.Azure.Mobile.Server.Security
             claimsIdentityMock.SetupGet(c => c.IsAuthenticated).Returns(isAuthenticated);
             return claimsIdentityMock.Object;
         }
-
-        private class MockServiceUser : MobileAppUser
+         
+        private MobileAppAuthenticationOptions CreateTestOptions()
         {
-            public MockServiceUser()
-                : base(ServiceUserTests.CreateMockClaimsIdentity(Enumerable.Empty<Claim>(), true))
+            MobileAppAuthenticationOptions options = new MobileAppAuthenticationOptions
             {
-            }
-
-            public Mock<AppServiceHttpClient> AppServiceClientMock { get; private set; }
-
-            internal override AppServiceHttpClient CreateAppServiceHttpClient(Uri appServiceGatewayUrl)
-            {
-                Mock<AppServiceHttpClient> appServiceClientMock = new Mock<AppServiceHttpClient>(appServiceGatewayUrl);
-                appServiceClientMock.Setup(c => c.GetRawTokenAsync(It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(new TokenResult()));
-                this.AppServiceClientMock = appServiceClientMock;
-                return appServiceClientMock.Object;
-            }
+                SigningKey = TestSigningKey,
+            };
+            return options;
         }
     }
 }

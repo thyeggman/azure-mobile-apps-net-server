@@ -3,9 +3,11 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using Microsoft.Azure.Mobile.Server.Authentication.AppService;
 using Microsoft.Azure.Mobile.Server.Properties;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
@@ -63,71 +65,83 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
                 throw new ArgumentNullException("options");
             }
 
-            string token;
+            ClaimsIdentity authenticatedIdentity = null;
             try
             {
-                ClaimsIdentity claimsIdentity = null;
-
-                // We do not want any existing User to flow through.
-                request.User = null;
-
-                // If there is an auth token specified then validate it.
-                token = request.Headers.Get(AuthenticationHeaderName);
-                if (!string.IsNullOrEmpty(token))
+                bool signingKeyExists = !string.IsNullOrEmpty(options.SigningKey);
+                if (signingKeyExists)
                 {
-                    ClaimsPrincipal claimsPrincipal;
-                    bool tokenIsValid = this.TryParseLoginToken(token, options, out claimsPrincipal);
-
-                    if (!tokenIsValid)
-                    {
-                        this.logger.WriteInformation(RResources.Authentication_InvalidToken);
-                        return null;
-                    }
-
-                    claimsIdentity = claimsPrincipal.Identity as ClaimsIdentity;
-                    if (claimsIdentity == null)
-                    {
-                        this.logger.WriteError(RResources.Authentication_InvalidIdentity
-                            .FormatForUser(typeof(IIdentity).Name, typeof(ClaimsIdentity).Name,
-                            claimsPrincipal.Identity != null ? claimsPrincipal.Identity.GetType().Name : "unknown"));
-                        return null;
-                    }
+                    // Validate the token.
+                    authenticatedIdentity = this.ValidateIdentity(request, options);
                 }
                 else
                 {
-                    claimsIdentity = new ClaimsIdentity();
+                    // We can't validate without the signing key.
+                    throw new InvalidOperationException(RResources.Authentication_MissingSigningKey);
                 }
-
-                // Set the user for the current request                
-                request.User = this.tokenUtility.CreateServiceUser(claimsIdentity, token);
             }
             catch (Exception ex)
             {
+                // An exception occurred. Ensure, we do not return an authenticated identity.
                 this.logger.WriteError(RResources.Authentication_Error.FormatForUser(ex.Message), ex);
             }
 
-            // If you return an actual AuthenticationTicket, Katana will create a new ClaimsIdentity and set 
-            // that to Request.User, which overwrites our MobileAppUser. By setting Request.User ourselves and
-            // returning null, that step is skipped and the current user remains a MobileAppUser.
-            return null;
+            return this.CreateAuthenticationTicket(authenticatedIdentity);
         }
 
-        protected virtual bool TryParseLoginToken(string token, MobileAppAuthenticationOptions options, out ClaimsPrincipal claimsPrincipal)
+        protected virtual AuthenticationTicket CreateAuthenticationTicket(ClaimsIdentity identity)
         {
+            if (identity == null)
+            {
+                // If we don't return a new ClaimsIdentity, it will cause request.User to be null.
+                identity = new ClaimsIdentity();
+            }
+
+            return new AuthenticationTicket(identity, null);
+        }
+
+        /// <summary>
+        /// Authenticates the login token from the <see cref="IOwinRequest"/> header, if it exists, and 
+        /// returns a <see cref="ClaimsIdentity"/> if authentication succeeded, or false if 
+        /// authentication failed. If token parsing failed, returns null.
+        /// </summary>
+        /// <param name="request">The <see cref="IOwinRequest"/> to authenticate.</param>
+        /// <param name="options">Authentication options.</param>
+        /// <returns>Returns the <see cref="ClaimsIdentity"/> if token validation succeeded.
+        /// Returns null if token parsing failed for any reason.</returns>
+        protected virtual ClaimsIdentity ValidateIdentity(IOwinRequest request, MobileAppAuthenticationOptions options)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException("request");
+            }
+
             if (options == null)
             {
                 throw new ArgumentNullException("options");
             }
 
-            if (!options.SkipTokenSignatureValidation)
+            string hostname = request.Uri.GetLeftPart(UriPartial.Authority) + "/";
+
+            bool tokenHeaderExists = request.Headers.ContainsKey(AuthenticationHeaderName);
+            if (!tokenHeaderExists)
             {
-                return this.tokenUtility.TryValidateLoginToken(token, options.SigningKey, out claimsPrincipal);
+                return null;
+            }
+
+            string tokenFromHeader = request.Headers.Get(AuthenticationHeaderName);
+
+            // Attempt to parse and validate the token from header
+            ClaimsPrincipal claimsPrincipalFromToken;
+            bool claimsAreValid = this.tokenUtility.TryValidateLoginToken(tokenFromHeader, hostname, hostname, options, out claimsPrincipalFromToken);
+            if (claimsAreValid)
+            {
+                return claimsPrincipalFromToken.Identity as ClaimsIdentity;
             }
             else
             {
-                // With token signature validation turned off, we assume validation
-                // has been done externally, and we trust all the claims.
-                return MobileAppTokenHandler.GetClaimsPrincipalForPrevalidatedToken(token, out claimsPrincipal);
+                this.logger.WriteInformation(RResources.Authentication_InvalidToken);
+                return null;
             }
         }
     }

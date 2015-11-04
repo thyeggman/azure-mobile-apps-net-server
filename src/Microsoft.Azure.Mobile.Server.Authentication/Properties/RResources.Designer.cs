@@ -88,11 +88,20 @@ namespace Microsoft.Azure.Mobile.Server.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;EMA_RuntimeUrl&apos; app setting is missing from the configuration..
+        ///   Looks up a localized string similar to &apos;WEBSITE_AUTH_SIGNING_KEY&apos; cannot be null or empty..
         /// </summary>
-        internal static string Missing_EmaRuntimeUrl {
+        internal static string Authentication_MissingSigningKey {
             get {
-                return ResourceManager.GetString("Missing_EmaRuntimeUrl", resourceCulture);
+                return ResourceManager.GetString("Authentication_MissingSigningKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GetIdentity failed because the authentication header was missing or had an invalid value..
+        /// </summary>
+        internal static string GetIdentities_MissingHeader {
+            get {
+                return ResourceManager.GetString("GetIdentities_MissingHeader", resourceCulture);
             }
         }
     }
