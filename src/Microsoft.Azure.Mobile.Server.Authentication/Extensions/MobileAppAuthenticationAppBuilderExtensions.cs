@@ -30,7 +30,7 @@ namespace Owin
             }
 
             MobileAppSettingsDictionary settings = config.GetMobileAppSettingsProvider().GetMobileAppSettings();
-            bool runningInAzure = settings.GetValueOrDefault<string>("WEBSITE_HOSTNAME") != null;
+            bool runningInAzure = !string.IsNullOrEmpty(settings.HostName);
 
             if ((appServiceAuthMode == AppServiceAuthenticationMode.LocalOnly && !runningInAzure)
                 || appServiceAuthMode == AppServiceAuthenticationMode.Always)
