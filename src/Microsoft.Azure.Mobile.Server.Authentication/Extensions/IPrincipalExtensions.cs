@@ -2,19 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ---------------------------------------------------------------------------- 
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Configuration;
-using System.Globalization;
 using System.Net.Http;
-using System.Security.Claims;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Authentication.AppService;
-using Microsoft.Azure.Mobile.Server.Properties;
-using Newtonsoft.Json.Linq;
 
 namespace System.Security.Principal
 {
@@ -81,10 +74,10 @@ namespace System.Security.Principal
 
         internal static void PopulateProviderCredentials(TokenEntry tokenEntry, ProviderCredentials credentials)
         {
-            
+
             if (tokenEntry.UserClaims != null)
             {
-                credentials.Claims = new Dictionary<string, string>(); 
+                credentials.Claims = new Dictionary<string, string>();
                 foreach (ClaimSlim claim in tokenEntry.UserClaims)
                 {
                     credentials.Claims[claim.Type] = claim.Value;
@@ -140,7 +133,7 @@ namespace System.Security.Principal
 
                 return;
             }
-            
+
         }
 
     }
