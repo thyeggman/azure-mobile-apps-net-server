@@ -57,6 +57,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Owin.Hosting.3.0.1\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Owin.Security, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Owin.Security.3.0.1\lib\net45\Microsoft.Owin.Security.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Owin.Testing, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Owin.Testing.3.0.1\lib\net45\Microsoft.Owin.Testing.dll</HintPath>
@@ -78,6 +82,11 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=4.0.20511.1437, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.IdentityModel.Tokens.Jwt.4.0.2.205111437\lib\net45\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -148,6 +157,10 @@
     <ProjectReference Include="..\..\src\Microsoft.Azure.Mobile.Server.Authentication\Microsoft.Azure.Mobile.Server.Authentication.csproj">
       <Project>{61ff8937-4ebf-4e16-b3e5-9a1dba6833e3}</Project>
       <Name>Microsoft.Azure.Mobile.Server.Authentication</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Microsoft.Azure.Mobile.Server.Login\Microsoft.Azure.Mobile.Server.Login.csproj">
+      <Project>{4f8392ee-59ff-41a0-8e69-568352fa463f}</Project>
+      <Name>Microsoft.Azure.Mobile.Server.Login</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Microsoft.Azure.Mobile.Server.Notifications\Microsoft.Azure.Mobile.Server.Notifications.csproj">
       <Project>{72076e66-f0b1-40b8-8bdc-3f0e0c622486}</Project>

@@ -78,9 +78,6 @@
     <Compile Include="..\Common\AssemblyUtils.cs">
       <Link>Common\AssemblyUtils.cs</Link>
     </Compile>
-    <Compile Include="..\Common\ClaimsIdentityExtensions.cs">
-      <Link>Common\ClaimsIdentityExtensions.cs</Link>
-    </Compile>
     <Compile Include="..\Common\CloneableExtensions.cs">
       <Link>Common\CloneableExtensions.cs</Link>
     </Compile>

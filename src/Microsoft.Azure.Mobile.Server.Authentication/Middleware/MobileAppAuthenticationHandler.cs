@@ -133,7 +133,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
 
             // Attempt to parse and validate the token from header
             ClaimsPrincipal claimsPrincipalFromToken;
-            bool claimsAreValid = this.tokenUtility.TryValidateLoginToken(tokenFromHeader, hostname, hostname, options, out claimsPrincipalFromToken);
+            bool claimsAreValid = this.tokenUtility.TryValidateLoginToken(tokenFromHeader, options.SigningKey, hostname, hostname, out claimsPrincipalFromToken);
             if (claimsAreValid)
             {
                 return claimsPrincipalFromToken.Identity as ClaimsIdentity;

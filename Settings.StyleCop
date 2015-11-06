@@ -2,11 +2,13 @@
   <GlobalSettings>
     <StringProperty Name="MergeSettingsFiles">NoMerge</StringProperty>
     <CollectionProperty Name="RecognizedWords">
+      <Value>aad</Value>
       <Value>apns</Value>
       <Value>auth</Value>
       <Value>Autofac</Value>
       <Value>bootstrapper</Value>
       <Value>bootstrapper's</Value>
+      <Value>contoso</Value>
       <Value>etag</Value>
       <Value>Fx</Value>
       <Value>FxCop</Value>

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Tracing;
-using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Config;
 using Microsoft.Azure.Mobile.Server.Notifications;
 using Microsoft.Azure.Mobile.Server.Properties;
@@ -39,29 +38,24 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
         private const string MicrosoftPushPlatform = "mpns";
         private const string GooglePlatform = "gcm";
 
-        private static PushClient pushClient = null;
+        private PushClient pushClient = null;
 
         private PushClient PushClient
         {
             get
             {
-                if (pushClient == null)
+                if (this.pushClient == null)
                 {
-                    pushClient = this.Configuration.GetPushClient();
+                    this.pushClient = this.Configuration.GetPushClient();
                 }
 
-                return pushClient;
+                return this.pushClient;
             }
         }
 
         protected override void Initialize(HttpControllerContext controllerContext)
         {
             base.Initialize(controllerContext);
-
-            if (pushClient == null)
-            {
-                pushClient = this.Configuration.GetPushClient();
-            }
         }
 
         /// <summary>
@@ -99,7 +93,7 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
                 // Tag the installation with the UserId if authenticated.
                 if (serviceUser != null && serviceUser.Identity.IsAuthenticated)
                 {
-                    Claim userIdClaim = serviceUser.FindFirst("uid");
+                    Claim userIdClaim = serviceUser.FindFirst(ClaimTypes.NameIdentifier);
                     if (userIdClaim != null)
                     {
                         string incomingUserTag = string.Format(UserIdTagPlaceholder, userIdClaim.Value);
@@ -136,10 +130,12 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
                     CopyTagsToInstallation(installation, tagsAssociatedWithInstallationId, false);
 
                     // Add the incoming UserId.
-                    ClaimsIdentity identity = serviceUser.Identity as ClaimsIdentity;
-                    string userId = identity.GetClaimValueOrNull("uid");
-                    string incomingUserTag = string.Format(UserIdTagPlaceholder, userId);
-                    AddTagToInstallation(installation, incomingUserTag);
+                    Claim userIdClaim = serviceUser.FindFirst(ClaimTypes.NameIdentifier);
+                    if (userIdClaim != null)
+                    {
+                        string incomingUserTag = string.Format(UserIdTagPlaceholder, userIdClaim.Value);
+                        AddTagToInstallation(installation, incomingUserTag);
+                    }
                 }
                 else
                 {

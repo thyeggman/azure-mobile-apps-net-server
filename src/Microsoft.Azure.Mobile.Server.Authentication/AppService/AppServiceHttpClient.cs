@@ -17,7 +17,6 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.AppService
         private const string AppServiceTokenAccessEndpointTemplate = "/.auth/me?provider={0}";
         private const string RuntimeUserAgent = "MobileAppNetServerSdk";
 
-
         private HttpClient client;
         private Uri webappUri;
         private bool isDisposed;

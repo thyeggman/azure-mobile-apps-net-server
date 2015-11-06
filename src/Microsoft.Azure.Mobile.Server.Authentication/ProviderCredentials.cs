@@ -46,6 +46,6 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
         /// be null or empty.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Setter is required for serialization."), JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IDictionary<string,string> Claims { get; set; }
+        public IDictionary<string, string> Claims { get; set; }
     }
 }

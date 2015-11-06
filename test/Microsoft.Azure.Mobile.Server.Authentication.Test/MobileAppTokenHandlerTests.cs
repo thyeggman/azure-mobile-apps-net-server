@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
-using System.Linq;
 using System.Security.Claims;
-using System.ServiceModel.Security.Tokens;
 using System.Web.Http;
 using Microsoft.Azure.Mobile.Server.Authentication;
+using Microsoft.Azure.Mobile.Server.Login;
 using Moq;
 using TestUtilities;
 using Xunit;
@@ -19,15 +18,16 @@ namespace Microsoft.Azure.Mobile.Server.Security
 {
     public class MobileAppTokenHandlerTests
     {
-        private const string TestSecretKey = "l9dsa634ksfdlds;lkw43-psdfd";
+        private readonly string TestSecretKey = "69dfd814c383dda4ea7aaeb26e605d419011e7ef3863d5cd2eee7a3607ec8f4d"; // SHA256 hash of 'l9dsa634ksfdlds;lkw43-psdfd'
         private const string TestWebsiteUrl = "https://fakesite.fakeazurewebsites.net/";
 
         private static readonly TimeSpan Lifetime = TimeSpan.FromDays(10);
+        private static readonly Claim[] DefaultClaims = new Claim[] { new Claim("sub", "my:userid") };
 
         private HttpConfiguration config;
         private Mock<MobileAppTokenHandler> tokenHandlerMock;
         private MobileAppTokenHandler tokenHandler;
-        private FacebookCredentials credentials;
+        private FacebookCredentials credentials;        
 
         public MobileAppTokenHandlerTests()
         {
@@ -103,86 +103,17 @@ namespace Microsoft.Azure.Mobile.Server.Security
         }
 
         [Fact]
-        public void CreateTokenInfo_Throws_IfNegativeLifetime()
-        {
-            Claim[] claims = new Claim[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, this.credentials.UserId)
-            };
-
-            // Act
-            ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() => this.tokenHandler.CreateTokenInfo(claims, TimeSpan.FromDays(-10), TestSecretKey));
-
-            // Assert
-            Assert.Contains("Argument must be greater than or equal to 00:00:00.", ex.Message);
-        }
-
-        [Fact]
-        public void CreateTokenFromClaims_CreatesTokenWithNoExpiry_WhenLifetimeIsNull()
-        {
-            MobileAppAuthenticationOptions options = CreateTestOptions();
-            string audience = TestWebsiteUrl;
-            string issuer = TestWebsiteUrl;
-
-            Claim[] claims = new Claim[]
-            {
-                new Claim("uid", this.credentials.UserId),
-                new Claim("aud", audience),
-                new Claim("iss", issuer),
-            };
-            TokenInfo tokenInfo = MobileAppTokenHandler.CreateTokenFromClaims(claims, TestSecretKey, null, audience, issuer);
-            JwtSecurityToken token = tokenInfo.Token;
-
-            // no exp claim
-            Assert.Null(token.Payload.Exp);
-            Assert.Equal(4, token.Claims.Count());
-            Assert.Equal(default(DateTime), token.ValidTo);
-            Assert.Equal(this.credentials.UserId, token.Claims.First(p => p.Type == "uid").Value);
-
-            ClaimsPrincipal claimsPrincipal = null;
-            bool isValid = this.tokenHandler.TryValidateLoginToken(token.RawData, TestWebsiteUrl, TestWebsiteUrl, options, out claimsPrincipal);
-            Assert.True(isValid);
-        }
-
-        [Fact]
-        public void CreateTokenInfo_CreatesExpectedToken()
-        {
-            Claim[] claims = new Claim[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, this.credentials.UserId),
-                new Claim("custom_claim_1", "CustomClaimValue1"),
-                new Claim("custom_claim_2", "CustomClaimValue2"),
-                new Claim("aud", TestWebsiteUrl),
-                new Claim("iss", TestWebsiteUrl),
-            };
-            TokenInfo tokenInfo = this.tokenHandler.CreateTokenInfo(claims, TimeSpan.FromDays(10), TestSecretKey);
-            JwtSecurityToken token = tokenInfo.Token;
-
-            Assert.Equal(8, token.Claims.Count());
-
-            Assert.Equal(10, (token.ValidTo - DateTime.Now).Days);
-            Assert.NotNull(token.Payload.Exp);
-            Assert.Equal("3", token.Claims.Single(p => p.Type == "ver").Value);
-            Assert.Equal("Facebook:1234", token.Claims.Single(p => p.Type == "uid").Value);
-            Assert.Equal("CustomClaimValue1", token.Claims.Single(p => p.Type == "custom_claim_1").Value);
-            Assert.Equal("CustomClaimValue2", token.Claims.Single(p => p.Type == "custom_claim_2").Value);
-        }
-
-        [Fact]
         public void CreateTokenInfo_AndValidateLoginToken_Works()
         {
             MobileAppAuthenticationOptions options = CreateTestOptions();
 
             Claim[] claims = new Claim[]
             {
-                new Claim(ClaimTypes.NameIdentifier, this.credentials.UserId),
-                new Claim("aud", TestWebsiteUrl),
-                new Claim("iss", TestWebsiteUrl),
+                new Claim("sub", this.credentials.UserId),
             };
 
             // Create a login token for the provider
-            TokenInfo info = this.tokenHandler.CreateTokenInfo(claims, Lifetime, TestSecretKey);
-            JwtSecurityToken token = info.Token;
+            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, TestSecretKey, TestWebsiteUrl, TestWebsiteUrl, Lifetime);
 
             this.ValidateLoginToken(token.RawData, options);
         }
@@ -215,7 +146,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
         {
             // validate the token and get the claims principal
             ClaimsPrincipal claimsPrincipal = null;
-            Assert.True(this.tokenHandler.TryValidateLoginToken(token, TestWebsiteUrl, TestWebsiteUrl, options, out claimsPrincipal));
+            Assert.True(this.tokenHandler.TryValidateLoginToken(token, options.SigningKey, TestWebsiteUrl, TestWebsiteUrl, out claimsPrincipal));
         }
 
         [Fact]
@@ -223,7 +154,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
         {
             MobileAppAuthenticationOptions options = CreateTestOptions();
             ClaimsPrincipal claimsPrincipal = null;
-            bool result = this.tokenHandler.TryValidateLoginToken("this is not a valid jwt", TestWebsiteUrl, TestWebsiteUrl, options, out claimsPrincipal);
+            bool result = this.tokenHandler.TryValidateLoginToken("this is not a valid jwt", options.SigningKey, TestWebsiteUrl, TestWebsiteUrl, out claimsPrincipal);
             Assert.False(result);
             Assert.Null(claimsPrincipal);
         }
@@ -231,15 +162,12 @@ namespace Microsoft.Azure.Mobile.Server.Security
         [Fact]
         public void TryValidateLoginToken_RejectsTokensSignedWithWrongKey()
         {
-            MobileAppAuthenticationOptions options = CreateTestOptions();
-            options.SigningKey = "SOME_OTHER_KEY";
-
-            TokenInfo tokenInfo = this.tokenHandler.CreateTokenInfo(new Claim[] { }, null, TestSecretKey);
-            JwtSecurityToken token = tokenInfo.Token;
+            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(DefaultClaims, TestSecretKey, TestWebsiteUrl, TestWebsiteUrl, null);
 
             ClaimsPrincipal claimsPrincipal = null;
 
-            bool isValid = this.tokenHandler.TryValidateLoginToken(token.RawData, TestWebsiteUrl, TestWebsiteUrl, options, out claimsPrincipal);
+            string anotherKey = "f12aca0581d81554852c5cb1314ee230395b349bdf828bb3e1ce8d556cfd4c5a"; // SHA256 hash of 'another_key'
+            bool isValid = this.tokenHandler.TryValidateLoginToken(token.RawData, anotherKey, TestWebsiteUrl, TestWebsiteUrl, out claimsPrincipal);
             Assert.False(isValid);
             Assert.Null(claimsPrincipal);
         }
@@ -356,7 +284,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
             JwtSecurityToken token = securityTokenHandler.CreateToken(tokenDescriptor) as JwtSecurityToken;
 
             // Act
-            SecurityTokenInvalidIssuerException ex = Assert.Throws<SecurityTokenInvalidIssuerException>(() => 
+            SecurityTokenInvalidIssuerException ex = Assert.Throws<SecurityTokenInvalidIssuerException>(() =>
                MobileAppTokenHandler.ValidateToken(token.RawData, TestSecretKey, audience, issuer));
 
             // Assert
@@ -399,7 +327,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
             JwtSecurityToken token = securityTokenHandler.CreateToken(tokenDescriptor) as JwtSecurityToken;
 
             // Act
-            ArgumentException ex = Assert.Throws<ArgumentException>(() => 
+            ArgumentException ex = Assert.Throws<ArgumentException>(() =>
                 MobileAppTokenHandler.ValidateToken(token.RawData + ".malformedbits.!.2.", TestSecretKey, audience, issuer));
 
             // Assert
@@ -414,15 +342,11 @@ namespace Microsoft.Azure.Mobile.Server.Security
                 new Claim("ver", "2"),
             };
 
-            byte[] signingKey = MobileAppTokenHandler.GetSigningKey(TestSecretKey);
-            BinarySecretSecurityToken signingToken = new BinarySecretSecurityToken(signingKey);
-            SigningCredentials signingCredentials = new SigningCredentials(new InMemorySymmetricSecurityKey(signingToken.GetKeyBytes()), "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256", "http://www.w3.org/2001/04/xmlenc#sha256");
-
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
                 AppliesToAddress = audience,
                 TokenIssuerName = issuer,
-                SigningCredentials = signingCredentials,
+                SigningCredentials = new HmacSigningCredentials(TestSecretKey),
                 Lifetime = new Lifetime(tokenLifetimeStart, tokenLifetimeEnd),
                 Subject = new ClaimsIdentity(claims),
             };
@@ -437,7 +361,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
             Assert.Equal("abc123", credentials.AccessToken);
         }
 
-        private static MobileAppAuthenticationOptions CreateTestOptions()
+        private MobileAppAuthenticationOptions CreateTestOptions()
         {
             MobileAppAuthenticationOptions options = new MobileAppAuthenticationOptions
             {

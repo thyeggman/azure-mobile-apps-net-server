@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Net.Http;
@@ -14,8 +13,8 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Authentication.AppService;
+using Microsoft.Azure.Mobile.Server.Login;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.Azure.Mobile.Server.Security
@@ -25,8 +24,8 @@ namespace Microsoft.Azure.Mobile.Server.Security
         private const string ObjectIdentifierClaimType = @"http://schemas.microsoft.com/identity/claims/objectidentifier";
         private const string TenantIdClaimType = @"http://schemas.microsoft.com/identity/claims/tenantid";
         private const string AuthHeaderName = "x-zumo-auth";
-        private const string TestSigningKey = "lk;jadlfkjla;kjljlk";
         private const string TestLocalhostUrl = "http://localhost/";
+        private const string TestSigningKey = "6523e58bc0eec42c31b9635d5e0dfc23b6d119b73e633bf3a5284c79bb4a1ede"; // SHA256 hash of 'secret_key'
         private FacebookCredentials facebookCredentials;
         private Mock<MobileAppTokenHandler> tokenHandlerMock;
         private IMobileAppTokenHandler tokenHandler;
@@ -42,16 +41,14 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
         [Fact]
         public void UserPropertiesAreValid()
-        {
-            // Arrange
-
+        {            
             // Act
             ClaimsPrincipal user = this.CreateTestUser();
 
             // Assert
             ClaimsIdentity identity = user.Identity as ClaimsIdentity;
             this.tokenHandlerMock.Verify();
-            Assert.Equal(this.facebookCredentials.UserId, identity.GetClaimValueOrNull("uid"));
+            Assert.Equal(this.facebookCredentials.UserId, identity.FindFirst(ClaimTypes.NameIdentifier).Value);
             Assert.True(user.Identity.IsAuthenticated);
         }
 
@@ -261,20 +258,17 @@ namespace Microsoft.Azure.Mobile.Server.Security
         /// </summary>
         private ClaimsPrincipal CreateTestUser()
         {
-            MobileAppAuthenticationOptions options = CreateTestOptions(); 
+            MobileAppAuthenticationOptions options = CreateTestOptions();
 
             Claim[] claims = new Claim[]
             {
-                new Claim("uid", this.facebookCredentials.UserId),
-                new Claim("aud", TestLocalhostUrl),
-                new Claim("iss", TestLocalhostUrl),
+                new Claim("sub", this.facebookCredentials.UserId)
             };
 
-            TokenInfo info = this.tokenHandler.CreateTokenInfo(claims, TimeSpan.FromDays(10), options.SigningKey);
-            JwtSecurityToken token = info.Token;
+            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, TestSigningKey, TestLocalhostUrl, TestLocalhostUrl, TimeSpan.FromDays(10));
 
             ClaimsPrincipal user = null;
-            this.tokenHandler.TryValidateLoginToken(token.RawData, TestLocalhostUrl, TestLocalhostUrl, options, out user);
+            this.tokenHandler.TryValidateLoginToken(token.RawData, options.SigningKey, TestLocalhostUrl, TestLocalhostUrl, out user);
 
             return user;
         }
@@ -286,7 +280,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
             claimsIdentityMock.SetupGet(c => c.IsAuthenticated).Returns(isAuthenticated);
             return claimsIdentityMock.Object;
         }
-         
+
         private MobileAppAuthenticationOptions CreateTestOptions()
         {
             MobileAppAuthenticationOptions options = new MobileAppAuthenticationOptions

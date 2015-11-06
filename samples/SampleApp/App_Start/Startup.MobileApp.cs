@@ -46,7 +46,7 @@ namespace Local
             Database.SetInitializer(new GreenInitializer());
             Database.SetInitializer(new BrownInitializer());
 
-            app.UseMobileAppAuthentication(config, AppServiceAuthenticationMode.LocalOnly);
+            app.UseAppServiceAuthentication(config, AppServiceAuthenticationMode.LocalOnly);
             app.UseWebApi(config);
         }
     }

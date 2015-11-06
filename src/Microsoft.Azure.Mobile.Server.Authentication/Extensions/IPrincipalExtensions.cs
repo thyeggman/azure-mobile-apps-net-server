@@ -14,7 +14,6 @@ namespace System.Security.Principal
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class IPrincipalExtensions
     {
-
         private const string ObjectIdentifierClaimType = @"http://schemas.microsoft.com/identity/claims/objectidentifier";
         private const string TenantIdClaimType = @"http://schemas.microsoft.com/identity/claims/tenantid";
 
@@ -74,7 +73,6 @@ namespace System.Security.Principal
 
         internal static void PopulateProviderCredentials(TokenEntry tokenEntry, ProviderCredentials credentials)
         {
-
             if (tokenEntry.UserClaims != null)
             {
                 credentials.Claims = new Dictionary<string, string>();
@@ -133,8 +131,6 @@ namespace System.Security.Principal
 
                 return;
             }
-
         }
-
     }
 }
