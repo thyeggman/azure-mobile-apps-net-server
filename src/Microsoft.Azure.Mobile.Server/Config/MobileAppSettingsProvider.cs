@@ -84,6 +84,16 @@ namespace Microsoft.Azure.Mobile.Server.Config
                 }
             }
 
+            if (string.IsNullOrEmpty(settings.SigningKey))
+            {
+                // Parse the signing key from environment variables, since it was not found in app settings
+                value = Environment.GetEnvironmentVariable(MobileAppSettingsKeys.WebsiteAuthSigningKey);
+                if (!string.IsNullOrEmpty(value))
+                {
+                    settings.SigningKey = value.Trim();
+                }
+            }
+
             return settings;
         }
 

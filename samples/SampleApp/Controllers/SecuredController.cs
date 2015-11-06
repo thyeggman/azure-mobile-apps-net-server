@@ -22,7 +22,7 @@ namespace Local.Controllers
         {
             ClaimsPrincipal user = this.User as ClaimsPrincipal;
             ClaimsIdentity identity = user.Identity as ClaimsIdentity;
-            Claim userIdClaim = identity.FindFirst("uid");
+            Claim userIdClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim != null)
             {
                 return "Hello from secured controller! UserId: " + userIdClaim.Value;
