@@ -3,13 +3,10 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.Serialization;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -17,7 +14,6 @@ using Microsoft.Azure.Mobile.Server.Authentication.AppService;
 using Microsoft.Azure.Mobile.Server.Config;
 using Moq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
@@ -54,6 +50,28 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
             Assert.Equal(accessToken, result.AccessToken);
             Assert.Equal(authToken, result.AuthenticationToken);
             Assert.Equal(facebookId, result.UserId);
+            Assert.Equal(webappUri + "/.auth/me?provider=facebook", handlerMock.ActualRequest.RequestUri.ToString());
+            Assert.Equal(accessToken, handlerMock.ActualRequest.Headers.GetValues("x-zumo-auth").Single());
+            Assert.Equal("MobileAppNetServerSdk", handlerMock.ActualRequest.Headers.GetValues("User-Agent").Single());
+        }
+
+        [Fact]
+        public async Task GetRawTokenAsync_ReturnsNull_IfNoToken()
+        {
+            string accessToken = "facebookAccessToken";
+            MockHttpMessageHandler handlerMock = new MockHttpMessageHandler(CreateEmptyResponse());
+
+            var webappUri = "http://test";
+            Mock<AppServiceHttpClient> appServiceClientMock = new Mock<AppServiceHttpClient>(new Uri(webappUri));
+            appServiceClientMock.CallBase = true;
+            appServiceClientMock.Setup(c => c.CreateHttpClient())
+                .Returns(new HttpClient(handlerMock));
+
+            // Act
+            TokenEntry result = await appServiceClientMock.Object.GetRawTokenAsync(accessToken, "Facebook");
+
+            // Assert            
+            Assert.Null(result);
             Assert.Equal(webappUri + "/.auth/me?provider=facebook", handlerMock.ActualRequest.RequestUri.ToString());
             Assert.Equal(accessToken, handlerMock.ActualRequest.Headers.GetValues("x-zumo-auth").Single());
             Assert.Equal("MobileAppNetServerSdk", handlerMock.ActualRequest.Headers.GetValues("User-Agent").Single());
@@ -105,6 +123,16 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
         {
             HttpResponseMessage response = new HttpResponseMessage();
             response.Content = new StringContent(JsonConvert.SerializeObject(tokenEntry));
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            return response;
+        }
+
+        // App Service Authentication returns {} if there is no token.
+        private static HttpResponseMessage CreateEmptyResponse()
+        {
+            HttpResponseMessage response = new HttpResponseMessage();
+            response.Content = new StringContent("{}");
             response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
             return response;

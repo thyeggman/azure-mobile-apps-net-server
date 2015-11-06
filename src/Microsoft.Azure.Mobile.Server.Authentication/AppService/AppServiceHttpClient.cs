@@ -63,7 +63,14 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.AppService
                 throw new HttpResponseException(response);
             }
 
-            return await response.Content.ReadAsAsync<TokenEntry>();
+            // if the JSON returned is simply {}, return null
+            JObject result = await response.Content.ReadAsAsync<JObject>();
+            if (!result.HasValues)
+            {
+                return null;
+            }
+
+            return result.ToObject<TokenEntry>();
         }
 
         private static void AddHeaders(HttpRequestMessage request, string authToken)
