@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------------------- 
 
 using System;
-using System.Collections.Generic;
 using System.Web.Http;
 using Microsoft.Azure.Mobile.Server;
 using Microsoft.Azure.Mobile.Server.Authentication;
@@ -17,7 +16,7 @@ namespace Owin
     /// </summary>
     public static class MobileAppAuthenticationAppBuilderExtensions
     {
-        public static IAppBuilder UseMobileAppAuthentication(this IAppBuilder appBuilder, HttpConfiguration config, AppServiceAuthenticationMode appServiceAuthMode, AuthenticationMode mode = AuthenticationMode.Active)
+        public static IAppBuilder UseAppServiceAuthentication(this IAppBuilder appBuilder, HttpConfiguration config, AppServiceAuthenticationMode appServiceAuthMode, AuthenticationMode mode = AuthenticationMode.Active)
         {
             if (appBuilder == null)
             {
@@ -29,29 +28,14 @@ namespace Owin
                 throw new ArgumentNullException("config");
             }
 
-            MobileAppSettingsDictionary settings = config.GetMobileAppSettingsProvider().GetMobileAppSettings();
-            bool runningInAzure = !string.IsNullOrEmpty(settings.HostName);
-
-            if ((appServiceAuthMode == AppServiceAuthenticationMode.LocalOnly && !runningInAzure)
-                || appServiceAuthMode == AppServiceAuthenticationMode.Always)
-            {
-                // Add the service authentication middleware only if AppServiceAuthenticationMode is set to LocalOnly and the app is not running in Azure, or set to Always
-                MobileAppAuthenticationOptions serviceOptions = GetMobileAppAuthenticationOptions(config, mode);
-                IMobileAppTokenHandler tokenHandler = config.GetMobileAppTokenHandler();
-                appBuilder.UseMobileAppAuthentication(serviceOptions, tokenHandler);
-            }
+            MobileAppAuthenticationOptions serviceOptions = GetMobileAppAuthenticationOptions(config, mode);
+            IMobileAppTokenHandler tokenHandler = config.GetMobileAppTokenHandler();
+            appBuilder.UseAppServiceAuthentication(config, appServiceAuthMode, serviceOptions, tokenHandler);
 
             return appBuilder;
         }
 
-        /// <summary>
-        /// Adds authentication using the built-in <see cref="MobileAppAuthenticationMiddleware"/> authentication model.
-        /// </summary>
-        /// <param name="appBuilder">The <see cref="IAppBuilder"/> passed to the configuration method.</param>
-        /// <param name="options">Middleware configuration options.</param>
-        /// <param name="tokenHandler">An <see cref="MobileAppTokenHandler"/> instance.</param>
-        /// <returns>The updated <see cref="IAppBuilder"/>.</returns>
-        public static IAppBuilder UseMobileAppAuthentication(this IAppBuilder appBuilder, MobileAppAuthenticationOptions options, IMobileAppTokenHandler tokenHandler)
+        public static IAppBuilder UseAppServiceAuthentication(this IAppBuilder appBuilder, HttpConfiguration config, AppServiceAuthenticationMode appServiceAuthMode, MobileAppAuthenticationOptions options, IMobileAppTokenHandler tokenHandler)
         {
             if (appBuilder == null)
             {
@@ -62,14 +46,19 @@ namespace Owin
             {
                 throw new ArgumentNullException("options");
             }
+            MobileAppSettingsDictionary settings = config.GetMobileAppSettingsProvider().GetMobileAppSettings();
+            bool runningInAzure = !string.IsNullOrEmpty(settings.HostName);
 
-            appBuilder.Use(typeof(MobileAppAuthenticationMiddleware), new object[]
+            if ((appServiceAuthMode == AppServiceAuthenticationMode.LocalOnly && !runningInAzure)
+                            || appServiceAuthMode == AppServiceAuthenticationMode.Always)
             {
-                appBuilder,
-                options,
-                tokenHandler
-            });
-
+                appBuilder.Use(typeof(MobileAppAuthenticationMiddleware), new object[]
+                {
+                    appBuilder,
+                    options,
+                    tokenHandler
+                });
+            }
             return appBuilder;
         }
 

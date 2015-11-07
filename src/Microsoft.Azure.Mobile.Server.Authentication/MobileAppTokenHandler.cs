@@ -3,17 +3,10 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
-using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.ServiceModel.Security.Tokens;
-using System.Text;
 using System.Web.Http;
-using Microsoft.Azure.Mobile.Server.Properties;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -40,55 +33,16 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
         }
 
         /// <inheritdoc />
-        public virtual TokenInfo CreateTokenInfo(IEnumerable<Claim> claims, TimeSpan? lifetime, string secretKey)
-        {
-            if (claims == null)
-            {
-                throw new ArgumentNullException("claims");
-            }
-
-            if (lifetime != null && lifetime < TimeSpan.Zero)
-            {
-                string msg = CommonResources.ArgMustBeGreaterThanOrEqualTo.FormatForUser(TimeSpan.Zero);
-                throw new ArgumentOutOfRangeException("lifetime", lifetime, msg);
-            }
-
-            if (string.IsNullOrEmpty(secretKey))
-            {
-                throw new ArgumentNullException("secretKey");
-            }
-
-            // add the claims passed in
-            Collection<Claim> finalClaims = new Collection<Claim>();
-            foreach (Claim claim in claims)
-            {
-                finalClaims.Add(claim);
-            }
-
-            // add our standard claims
-            finalClaims.Add(new Claim("ver", "3"));
-
-            Claim uidClaim = finalClaims.SingleOrDefault(p => p.Type == ClaimTypes.NameIdentifier);
-            if (uidClaim != null)
-            {
-                finalClaims.Remove(uidClaim);
-                finalClaims.Add(new Claim("uid", uidClaim.Value));
-            }
-
-            return CreateTokenFromClaims(finalClaims, secretKey, lifetime);
-        }
-
-        /// <inheritdoc />
-        public virtual bool TryValidateLoginToken(string token, string audience, string issuer, MobileAppAuthenticationOptions options, out ClaimsPrincipal claimsPrincipal)
+        public virtual bool TryValidateLoginToken(string token, string signingKey, string audience, string issuer, out ClaimsPrincipal claimsPrincipal)
         {
             if (token == null)
             {
                 throw new ArgumentNullException("token");
             }
 
-            if (options == null)
+            if (signingKey == null)
             {
-                throw new ArgumentNullException("options");
+                throw new ArgumentNullException("signingKey");
             }
 
             JwtSecurityToken parsedToken = null;
@@ -113,7 +67,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
                 ValidateLifetime = parsedToken.Payload.Exp.HasValue  // support tokens with no expiry
             };
 
-            return TryValidateToken(validationParams, token, options.SigningKey, out claimsPrincipal);
+            return TryValidateToken(validationParams, token, signingKey, out claimsPrincipal);
         }
 
         /// <inheritdoc />
@@ -150,20 +104,6 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
                 providerUserId = null;
                 return false;
             }
-        }
-
-        internal static ClaimsPrincipal SetAnonymousUser(ClaimsPrincipal user)
-        {
-            ClaimsIdentity identity = user.Identity as ClaimsIdentity;
-            foreach (Claim claim in identity.Claims)
-            {
-                if (claim.Type == ClaimTypes.NameIdentifier || claim.Type == "uid")
-                {
-                    identity.TryRemoveClaim(claim);
-                }
-            }
-
-            return user;
         }
 
         [CLSCompliant(false)]
@@ -244,58 +184,12 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
 
         internal static ClaimsPrincipal ValidateToken(TokenValidationParameters validationParams, string tokenString, string secretKey)
         {
-            List<BinarySecretSecurityToken> signingTokens = new List<BinarySecretSecurityToken>();
-            signingTokens.Add(new BinarySecretSecurityToken(GetSigningKey(secretKey)));
-            validationParams.IssuerSigningTokens = signingTokens;
+            validationParams.IssuerSigningToken = new BinarySecretSecurityToken(HmacSigningCredentials.ParseKeyString(secretKey));
 
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityToken validatedToken = null;
 
             return tokenHandler.ValidateToken(tokenString, validationParams, out validatedToken);
-        }
-
-        public static TokenInfo CreateTokenFromClaims(IEnumerable<Claim> claims, string secretKey, TimeSpan? lifetime, string audience = null, string issuer = null)
-        {
-            byte[] signingKey = GetSigningKey(secretKey);
-            BinarySecretSecurityToken signingToken = new BinarySecretSecurityToken(signingKey);
-            SigningCredentials signingCredentials = new SigningCredentials(new InMemorySymmetricSecurityKey(signingToken.GetKeyBytes()), "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256", "http://www.w3.org/2001/04/xmlenc#sha256");
-            DateTime created = DateTime.UtcNow;
-
-            // we allow for no expiry (if lifetime is null)
-            DateTime? expiry = (lifetime != null) ? created + lifetime : null;
-
-            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
-            {
-                AppliesToAddress = audience,
-                TokenIssuerName = issuer,
-                SigningCredentials = signingCredentials,
-                Lifetime = new Lifetime(created, expiry),
-                Subject = new ClaimsIdentity(claims),
-            };
-
-            JwtSecurityTokenHandler securityTokenHandler = new JwtSecurityTokenHandler();
-            JwtSecurityToken token = securityTokenHandler.CreateToken(tokenDescriptor) as JwtSecurityToken;
-
-            return new TokenInfo { Token = token };
-        }
-
-        internal static byte[] GetSigningKey(string secretKey)
-        {
-            if (string.IsNullOrEmpty(secretKey))
-            {
-                throw new ArgumentNullException("secretKey");
-            }
-
-            UTF8Encoding encoder = new UTF8Encoding(true, true);
-            byte[] computeHashInput = encoder.GetBytes(secretKey);
-            byte[] signingKey = null;
-
-            using (var sha256Provider = new SHA256Managed())
-            {
-                signingKey = sha256Provider.ComputeHash(computeHashInput);
-            }
-
-            return signingKey;
         }
 
         /// <summary>

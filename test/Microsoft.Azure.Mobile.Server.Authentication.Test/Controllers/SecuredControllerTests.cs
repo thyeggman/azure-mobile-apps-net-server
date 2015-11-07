@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Config;
+using Microsoft.Azure.Mobile.Server.Login;
 using Microsoft.Azure.Mobile.Server.Tables.Config;
 using Microsoft.Owin.Testing;
 using Newtonsoft.Json.Linq;
@@ -23,6 +24,8 @@ namespace Microsoft.Azure.Mobile.Server
     public class SecuredControllerTests
     {
         private const string TestLocalhostName = "http://localhost/";
+        private const string SigningKeyAlpha = "eedf7267f04f50f448729f60df30abf3148950f63ab499ee60f6b5b74b676004"; // SHA256 has of 'alpha_key'
+        private const string SigningKeyBeta = "467f24c69e9f3d2e0709f13363e074b244b2d58e204f57b57a59b4f7fdf32a93"; // SHA256 hash of 'beta_key'
 
         [Fact]
         public async Task AnonymousAction_AnonymousRequest_ReturnsOk()
@@ -62,7 +65,7 @@ namespace Microsoft.Azure.Mobile.Server
             string audience = TestLocalhostName;
             string issuer = TestLocalhostName;
 
-            JwtSecurityToken token = context.GetTestToken("wrongkey", audience, issuer);
+            JwtSecurityToken token = context.GetTestToken(SigningKeyBeta, audience, issuer);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/application");
             request.Headers.Add(MobileAppAuthenticationHandler.AuthenticationHeaderName, token.RawData);
@@ -229,16 +232,11 @@ namespace Microsoft.Azure.Mobile.Server
                 // setup test authorization config values
                 IMobileAppSettingsProvider settingsProvider = config.GetMobileAppSettingsProvider();
                 var settings = settingsProvider.GetMobileAppSettings();
-                settings.SigningKey = "signing_key";
+                settings.SigningKey = SigningKeyAlpha;
 
                 return TestServer.Create((appBuilder) =>
                 {
-                    MobileAppAuthenticationOptions options = new MobileAppAuthenticationOptions()
-                    {
-                        SigningKey = settings.SigningKey,
-                    };
-
-                    appBuilder.UseMobileAppAuthentication(options, config.GetMobileAppTokenHandler());
+                    appBuilder.UseAppServiceAuthentication(config, AppServiceAuthenticationMode.LocalOnly);
                     appBuilder.UseWebApi(config);
                 });
             }
@@ -247,16 +245,15 @@ namespace Microsoft.Azure.Mobile.Server
             {
                 Claim[] claims = new Claim[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, "Facebook:1234"),
+                    new Claim("sub", "Facebook:1234"),
                     new Claim("custom_claim_1", "CustomClaimValue1"),
                     new Claim("custom_claim_2", "CustomClaimValue2"),
                     new Claim("aud", audience),
                     new Claim("iss", issuer),
                 };
 
-                TokenInfo info = this.Config.GetMobileAppTokenHandler().CreateTokenInfo(claims, TimeSpan.FromDays(30), secretKey);
+                JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, secretKey, audience, issuer, TimeSpan.FromDays(30));
 
-                JwtSecurityToken token = info.Token;
                 Assert.Equal(8, token.Claims.Count());
 
                 return token;

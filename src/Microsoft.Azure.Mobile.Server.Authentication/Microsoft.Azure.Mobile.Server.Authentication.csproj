@@ -84,9 +84,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Common\ClaimsIdentityExtensions.cs">
-      <Link>Common\ClaimsIdentityExtensions.cs</Link>
-    </Compile>
     <Compile Include="..\Common\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
@@ -101,6 +98,9 @@
     </Compile>
     <Compile Include="..\Common\EnumHelperOfTEnum.cs">
       <Link>Common\EnumHelperOfTEnum.cs</Link>
+    </Compile>
+    <Compile Include="..\Common\HmacSigningCredentials.cs">
+      <Link>Common\HmacSigningCredentials.cs</Link>
     </Compile>
     <Compile Include="..\Common\HttpHeaderUtils.cs">
       <Link>Common\HttpHeaderUtils.cs</Link>
@@ -131,7 +131,6 @@
     <Compile Include="Middleware\MobileAppAuthenticationMiddleware.cs" />
     <Compile Include="Middleware\MobileAppAuthenticationOptions.cs" />
     <Compile Include="MobileAppTokenHandler.cs" />
-    <Compile Include="TokenInfo.cs" />
     <Compile Include="Credentials\TwitterCredentials.cs" />
   </ItemGroup>
   <ItemGroup>

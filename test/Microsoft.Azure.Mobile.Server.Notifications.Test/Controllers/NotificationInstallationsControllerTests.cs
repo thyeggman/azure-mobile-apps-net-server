@@ -4,9 +4,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens;
+using System.Linq;
+using System.Net.Http;
+using System.Reflection;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Web.Http;
+using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Controllers;
+using Microsoft.Azure.Mobile.Server.Login;
 using Microsoft.Azure.Mobile.Server.Notifications;
 using Microsoft.Azure.NotificationHubs;
+using Microsoft.Azure.NotificationHubs.Messaging;
+using Moq;
 using Xunit;
 
 namespace Microsoft.WindowsAzure.Mobile.Service
@@ -527,6 +538,112 @@ namespace Microsoft.WindowsAzure.Mobile.Service
             Assert.Equal(0, testInstallation.Templates[installationTemplateName].Tags.Count);
         }
 
+        [Fact]
+        public async Task PutInstallations_RegistersUserId_IfAuthenticated()
+        {
+            // Arrange
+            NotificationInstallationsController controller = InitializeAuthenticatedController();
+            HttpConfiguration config = controller.Configuration;
+            NotificationInstallation notification = GetNotificationInstallation();
+
+            // Mock the PushClient and capture the Installation that we send to NH for later verification
+            Installation installation = null;
+            var pushClientMock = new Mock<PushClient>(config);
+            pushClientMock.Setup(p => p.CreateOrUpdateInstallationAsync(It.IsAny<Installation>()))
+                .Returns<Installation>((inst) =>
+                {
+                    installation = inst;
+                    return Task.FromResult(0);
+                });
+            pushClientMock.Setup(p => p.GetRegistrationsByTagAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Returns(Task.FromResult(this.CreateCollectionQueryResult<RegistrationDescription>(Enumerable.Empty<RegistrationDescription>())));
+            config.SetPushClient(pushClientMock.Object);
+
+            // Act
+            await controller.PutInstallation(notification.InstallationId, notification);
+
+            // Assert
+            Assert.NotNull(installation);
+            Assert.Equal(notification.InstallationId, installation.InstallationId);
+            Assert.Equal(notification.PushChannel, installation.PushChannel);
+            Assert.Equal(1, installation.Tags.Count());
+            Assert.Equal("_UserId:my:userid", installation.Tags[0]);
+        }
+
+        [Fact]
+        public async Task PutInstallations_RegistersUserId_IfAuthenticatedAndTagsExist()
+        {
+            // Arrange
+            NotificationInstallationsController controller = InitializeAuthenticatedController();
+            HttpConfiguration config = controller.Configuration;
+            NotificationInstallation notification = GetNotificationInstallation();
+
+            // Mock the PushClient and capture the Installation that we send to NH for later verification
+            Installation installation = null;
+            var pushClientMock = new Mock<PushClient>(config);
+            pushClientMock.Setup(p => p.CreateOrUpdateInstallationAsync(It.IsAny<Installation>()))
+                .Returns<Installation>((inst) =>
+                {
+                    installation = inst;
+                    return Task.FromResult(0);
+                });
+            pushClientMock.Setup(p => p.GetRegistrationsByTagAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Returns(() =>
+                {
+                    RegistrationDescription[] registrations = new RegistrationDescription[]
+                    {
+                        new WindowsRegistrationDescription("http://someuri", new string[] { "tag1", "tag2", "_UserId:something" })                        
+                    };
+                    return Task.FromResult(this.CreateCollectionQueryResult<RegistrationDescription>(registrations));
+                });
+            config.SetPushClient(pushClientMock.Object);
+
+            // Act
+            await controller.PutInstallation(notification.InstallationId, notification);
+
+            // Assert
+            Assert.NotNull(installation);
+            Assert.Equal(notification.InstallationId, installation.InstallationId);
+            Assert.Equal(notification.PushChannel, installation.PushChannel);
+            Assert.Equal(3, installation.Tags.Count());
+
+            // verify the existing userid is removed and replaced with current
+            Assert.Equal("_UserId:my:userid", installation.Tags[2]);
+        }
+
+        private static NotificationInstallationsController InitializeAuthenticatedController()
+        {
+            string signingKey = "6523e58bc0eec42c31b9635d5e0dfc23b6d119b73e633bf3a5284c79bb4a1ede"; // SHA256 hash of 'secret_key'
+            HttpConfiguration config = new HttpConfiguration();
+            MobileAppTokenHandler handler = new MobileAppTokenHandler(config);
+            string url = "http://localhost";
+            Claim[] claims = new Claim[] { new Claim("sub", "my:userid") };
+
+            // Create a token the same way as App Service Authentication
+            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, signingKey, url, url, TimeSpan.FromDays(10));
+
+            // Validate that token and parse it into a ClaimsPrincipal the same way as App Service Authentication
+            ClaimsPrincipal user = null;
+            handler.TryValidateLoginToken(token.RawData, signingKey, url, url, out user);
+
+            NotificationInstallationsController controller = new NotificationInstallationsController();
+            controller.Configuration = config;
+            controller.Request = new HttpRequestMessage();
+            controller.User = user;
+
+            return controller;
+        }
+
+        private static NotificationInstallation GetNotificationInstallation()
+        {
+            return new NotificationInstallation
+            {
+                InstallationId = Guid.NewGuid().ToString(),
+                PushChannel = Guid.NewGuid().ToString(),
+                Platform = "wns"
+            };
+        }
+
         private static NotificationSecondaryTile MakeTestNotificationSecondaryTile()
         {
             NotificationSecondaryTile tile = new NotificationSecondaryTile
@@ -580,6 +697,15 @@ namespace Microsoft.WindowsAzure.Mobile.Service
             };
 
             return template;
+        }
+
+        // CollectionQueryResult is internal so we need to use reflection to make one for mocking purposes.
+        private CollectionQueryResult<T> CreateCollectionQueryResult<T>(IEnumerable<T> items) where T : EntityDescription
+        {
+            var constructor = typeof(CollectionQueryResult<T>)
+                .GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
+                .Single();
+            return constructor.Invoke(new object[] { items, null }) as CollectionQueryResult<T>;
         }
 
         public class NotificationInstallationsControllerMock : NotificationInstallationsController

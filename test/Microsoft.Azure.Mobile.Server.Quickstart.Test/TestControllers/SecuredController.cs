@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Web.Http;
-using Microsoft.Azure.Mobile.Server.Authentication;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Azure.Mobile.Server.TestControllers
@@ -32,8 +31,12 @@ namespace Microsoft.Azure.Mobile.Server.TestControllers
             JObject details = null;
             if (user != null)
             {
-                ClaimsIdentity identity = user.Identity as ClaimsIdentity;
-                string userId = identity.GetClaimValueOrNull("uid");
+                Claim userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+                string userId = null;
+                if (userIdClaim != null)
+                {
+                    userId = userIdClaim.Value;
+                }
                 details = new JObject
                 {
                     { "id", userId }               

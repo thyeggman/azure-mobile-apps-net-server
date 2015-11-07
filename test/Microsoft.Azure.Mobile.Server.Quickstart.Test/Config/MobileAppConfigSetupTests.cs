@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Azure.Mobile.Server.Authentication;
+using Microsoft.Azure.Mobile.Server.Login;
 using Microsoft.Azure.Mobile.Server.Notifications;
 using Microsoft.Azure.NotificationHubs;
 using Microsoft.Azure.NotificationHubs.Messaging;
@@ -30,7 +31,6 @@ namespace Microsoft.Azure.Mobile.Server.Config
     {
         private const string TestWebsiteUrl = "http://localhost/";
         private static MobileAppSettingsDictionary settings;
-        private static IMobileAppTokenHandler tokenHandler;
 
         public static TheoryDataCollection<AuthenticationMode, bool, bool> AuthStatusData
         {
@@ -65,7 +65,6 @@ namespace Microsoft.Azure.Mobile.Server.Config
                     .UseDefaultConfiguration()
                     .ApplyTo(config);
 
-                tokenHandler = config.GetMobileAppTokenHandler();
                 settings = config.GetMobileAppSettingsProvider().GetMobileAppSettings();
 
                 var pushClientMock = new Mock<PushClient>(config);
@@ -84,7 +83,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
                         config.Filters.Add(new HostAuthenticationFilter(MobileAppAuthenticationOptions.AuthenticationName));
                     }
 
-                    app.UseMobileAppAuthentication(config, AppServiceAuthenticationMode.LocalOnly, mode);
+                    app.UseAppServiceAuthentication(config, AppServiceAuthenticationMode.LocalOnly, mode);
                 }
 
                 app.UseWebApi(config);
@@ -162,12 +161,9 @@ namespace Microsoft.Azure.Mobile.Server.Config
         {
             Claim[] claims = new Claim[]
             {
-                new Claim(ClaimTypes.NameIdentifier, "Facebook:1234"),
-                new Claim("aud", TestWebsiteUrl),
-                new Claim("iss", TestWebsiteUrl),
+                new Claim("sub", "Facebook:1234")
             };
-            TokenInfo info = tokenHandler.CreateTokenInfo(claims, TimeSpan.FromDays(30), settings.SigningKey);
-            JwtSecurityToken token = info.Token;
+            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, settings.SigningKey, TestWebsiteUrl, TestWebsiteUrl, TimeSpan.FromDays(30));
             return token;
         }
 

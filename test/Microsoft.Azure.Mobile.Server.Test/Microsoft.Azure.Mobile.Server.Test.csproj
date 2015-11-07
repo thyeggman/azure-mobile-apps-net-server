@@ -174,9 +174,6 @@
     <Compile Include="..\Common\AssemblyUtilsTests.cs">
       <Link>Common\AssemblyUtilsTests.cs</Link>
     </Compile>
-    <Compile Include="..\Common\ClaimsIdentityExtensionsTests.cs">
-      <Link>Common\ClaimsIdentityExtensionsTests.cs</Link>
-    </Compile>
     <Compile Include="..\Common\CloneableExtensionsTests.cs">
       <Link>Common\CloneableExtensionsTests.cs</Link>
     </Compile>

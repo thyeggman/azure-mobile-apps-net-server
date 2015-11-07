@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
                 .Verifiable();
 
             // Act
-            this.appBuilder.UseMobileAppAuthentication(this.config, AppServiceAuthenticationMode.LocalOnly);
+            this.appBuilder.UseAppServiceAuthentication(this.config, AppServiceAuthenticationMode.LocalOnly);
 
             // Assert
             // We expect three pieces of middleware to be added
