@@ -1,6 +1,6 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -123,7 +123,7 @@ namespace Microsoft.WindowsAzure.Mobile.Service
                 {
                     {
                         "tileName",
-                        new WnsSecondaryTile 
+                        new WnsSecondaryTile
                         {
                             PushChannel = WnsPushChannelValid,
                             Tags = new List<string>
@@ -171,7 +171,7 @@ namespace Microsoft.WindowsAzure.Mobile.Service
             {
                 Body = "someString",
                 Tags = new List<string>
-                { 
+                {
                     "tag1",
                     "tag2"
                 },
@@ -261,7 +261,7 @@ namespace Microsoft.WindowsAzure.Mobile.Service
             };
             if (platform.Equals("wns", StringComparison.OrdinalIgnoreCase))
             {
-                template.Headers = new Dictionary<string, string> 
+                template.Headers = new Dictionary<string, string>
                 {
                     { "header1", "value1" }
                 };
@@ -409,7 +409,7 @@ namespace Microsoft.WindowsAzure.Mobile.Service
 
             tile.Templates = new Dictionary<string, NotificationTemplate>
             {
-                { 
+                {
                     "templateName",
                     null
                 }
@@ -521,7 +521,7 @@ namespace Microsoft.WindowsAzure.Mobile.Service
                 Assert.NotNull(testInstallation.SecondaryTiles[tileName].Templates);
                 Assert.NotNull(testInstallation.SecondaryTiles[tileName].Templates[tileTemplateName]);
 
-                // Tags were stripped within the tile 
+                // Tags were stripped within the tile
                 Assert.Equal(tileTemplateBody, testInstallation.SecondaryTiles[tileName].Templates[tileTemplateName].Body);
                 Assert.Equal(installationTemplateHeaderValue, testInstallation.Templates[installationTemplateName].Headers[installationTemplateHeaderName]);
             }
@@ -592,7 +592,7 @@ namespace Microsoft.WindowsAzure.Mobile.Service
                 {
                     RegistrationDescription[] registrations = new RegistrationDescription[]
                     {
-                        new WindowsRegistrationDescription("http://someuri", new string[] { "tag1", "tag2", "_UserId:something" })                        
+                        new WindowsRegistrationDescription("http://someuri", new string[] { "tag1", "tag2", "_UserId:something" })
                     };
                     return Task.FromResult(this.CreateCollectionQueryResult<RegistrationDescription>(registrations));
                 });
@@ -624,7 +624,8 @@ namespace Microsoft.WindowsAzure.Mobile.Service
 
             // Validate that token and parse it into a ClaimsPrincipal the same way as App Service Authentication
             ClaimsPrincipal user = null;
-            handler.TryValidateLoginToken(token.RawData, signingKey, url, url, out user);
+            string[] validIssAud = new[] { url };
+            handler.TryValidateLoginToken(token.RawData, signingKey, validIssAud, validIssAud, out user);
 
             NotificationInstallationsController controller = new NotificationInstallationsController();
             controller.Configuration = config;
@@ -654,7 +655,7 @@ namespace Microsoft.WindowsAzure.Mobile.Service
                     "tag1",
                     "tag2"
                 },
-                Templates = new Dictionary<string, NotificationTemplate> 
+                Templates = new Dictionary<string, NotificationTemplate>
                 {
                     {
                         "templateName", new NotificationTemplate
@@ -664,9 +665,9 @@ namespace Microsoft.WindowsAzure.Mobile.Service
                             {
                                 { "header1", "value1" }
                             },
-                            Tags = new List<string> 
+                            Tags = new List<string>
                             {
-                                "tagA", 
+                                "tagA",
                                 "tagB"
                             }
                         }
@@ -683,7 +684,7 @@ namespace Microsoft.WindowsAzure.Mobile.Service
             {
                 Body = "someString",
                 Tags = new List<string>
-                { 
+                {
                     "tag1",
                     "tag2"
                 },

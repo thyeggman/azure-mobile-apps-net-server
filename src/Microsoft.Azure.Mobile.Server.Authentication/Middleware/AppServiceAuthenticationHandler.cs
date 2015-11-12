@@ -17,35 +17,27 @@ using Microsoft.Owin.Security.Infrastructure;
 namespace Microsoft.Azure.Mobile.Server.Authentication
 {
     /// <summary>
-    /// The <see cref="MobileAppAuthenticationHandler"/> authenticates a caller who has already authenticated using the Login controller,
+    /// The <see cref="AppServiceAuthenticationHandler"/> authenticates a caller who has already authenticated using the Login controller,
     /// or has provided HTTP basic authentication credentials matching either the application key or the master key (for admin access).
     /// </summary>
-    public class MobileAppAuthenticationHandler : AuthenticationHandler<MobileAppAuthenticationOptions>
+    public class AppServiceAuthenticationHandler : AuthenticationHandler<AppServiceAuthenticationOptions>
     {
         public const string AuthenticationHeaderName = "x-zumo-auth";
 
         private readonly ILogger logger;
-        private readonly IMobileAppTokenHandler tokenUtility;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MobileAppAuthenticationHandler"/> class with the given <paramref name="logger"/>.
+        /// Initializes a new instance of the <see cref="AppServiceAuthenticationHandler"/> class with the given <paramref name="logger"/>.
         /// </summary>
         /// <param name="logger">The <see cref="ILogger"/> to use for logging.</param>
-        /// <param name="tokenHandler">The <see cref="IMobileAppTokenHandler"/> to use.</param>
-        public MobileAppAuthenticationHandler(ILogger logger, IMobileAppTokenHandler tokenHandler)
+        public AppServiceAuthenticationHandler(ILogger logger)
         {
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
 
-            if (tokenHandler == null)
-            {
-                throw new ArgumentNullException("tokenHandler");
-            }
-
             this.logger = logger;
-            this.tokenUtility = tokenHandler;
         }
 
         protected override Task<AuthenticationTicket> AuthenticateCoreAsync()
@@ -53,7 +45,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
             return Task.FromResult(this.Authenticate(this.Request, this.Options));
         }
 
-        protected virtual AuthenticationTicket Authenticate(IOwinRequest request, MobileAppAuthenticationOptions options)
+        protected virtual AuthenticationTicket Authenticate(IOwinRequest request, AppServiceAuthenticationOptions options)
         {
             if (request == null)
             {
@@ -101,15 +93,15 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
         }
 
         /// <summary>
-        /// Authenticates the login token from the <see cref="IOwinRequest"/> header, if it exists, and 
-        /// returns a <see cref="ClaimsIdentity"/> if authentication succeeded, or false if 
+        /// Authenticates the login token from the <see cref="IOwinRequest"/> header, if it exists, and
+        /// returns a <see cref="ClaimsIdentity"/> if authentication succeeded, or false if
         /// authentication failed. If token parsing failed, returns null.
         /// </summary>
         /// <param name="request">The <see cref="IOwinRequest"/> to authenticate.</param>
         /// <param name="options">Authentication options.</param>
         /// <returns>Returns the <see cref="ClaimsIdentity"/> if token validation succeeded.
         /// Returns null if token parsing failed for any reason.</returns>
-        protected virtual ClaimsIdentity ValidateIdentity(IOwinRequest request, MobileAppAuthenticationOptions options)
+        protected virtual ClaimsIdentity ValidateIdentity(IOwinRequest request, AppServiceAuthenticationOptions options)
         {
             if (request == null)
             {
@@ -121,8 +113,6 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
                 throw new ArgumentNullException("options");
             }
 
-            string hostname = request.Uri.GetLeftPart(UriPartial.Authority) + "/";
-
             bool tokenHeaderExists = request.Headers.ContainsKey(AuthenticationHeaderName);
             if (!tokenHeaderExists)
             {
@@ -133,7 +123,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
 
             // Attempt to parse and validate the token from header
             ClaimsPrincipal claimsPrincipalFromToken;
-            bool claimsAreValid = this.tokenUtility.TryValidateLoginToken(tokenFromHeader, options.SigningKey, hostname, hostname, out claimsPrincipalFromToken);
+            bool claimsAreValid = options.TokenHandler.TryValidateLoginToken(tokenFromHeader, options.SigningKey, options.ValidAudiences, options.ValidIssuers, out claimsPrincipalFromToken);
             if (claimsAreValid)
             {
                 return claimsPrincipalFromToken.Identity as ClaimsIdentity;

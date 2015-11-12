@@ -24,7 +24,6 @@ namespace System
         /// <summary>
         /// Formats the input string to be user visible using <see cref="CultureInfo.InvariantCulture"/>.
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "This is called in some but not all contexts.")]
         public static string FormatInvariant(this string format, params object[] args)
         {
             return string.Format(CultureInfo.InvariantCulture, format, args);
@@ -37,7 +36,6 @@ namespace System
         /// <param name="input">The string to split.</param>
         /// <param name="separator">An array of Unicode characters that delimit the substrings in this instance, an empty array that contains no delimiters, or null.</param>
         /// <returns>An <see cref="IEnumerable{T}"/> containing the resulting segments.</returns>
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "This is called in some but not all contexts.")]
         public static IEnumerable<string> SplitAndTrim(this string input, params char[] separator)
         {
             if (input == null)

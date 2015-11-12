@@ -16,11 +16,11 @@ namespace Microsoft.Azure.Mobile.Server.Security
         private const string SigningKey = "$$SigningKey";
         private const string ApplicationKey = "$$ApplicationKey";
 
-        private MobileAppAuthenticationOptions options;
+        private AppServiceAuthenticationOptions options;
 
         public MobileAppAuthenticationOptionsTests()
         {
-            this.options = new MobileAppAuthenticationOptions();
+            this.options = new AppServiceAuthenticationOptions();
             this.options.SigningKey = SigningKey;
         }
 

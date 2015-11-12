@@ -1,6 +1,6 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System;
 using System.Collections.Specialized;
@@ -9,7 +9,7 @@ using System.Configuration;
 namespace Microsoft.Azure.Mobile.Server.Config
 {
     /// <summary>
-    /// Provides a default implementation of <see cref="IMobileAppSettingsProvider"/> which gets the  
+    /// Provides a default implementation of <see cref="IMobileAppSettingsProvider"/> which gets the
     /// settings for the service from the global <see cref="ConfigurationManager"/>.
     /// </summary>
     public class MobileAppSettingsProvider : IMobileAppSettingsProvider
@@ -81,16 +81,6 @@ namespace Microsoft.Azure.Mobile.Server.Config
                         string subscriptionId = value.Substring(0, idx);
                         settings.SubscriptionId = subscriptionId;
                     }
-                }
-            }
-
-            if (string.IsNullOrEmpty(settings.SigningKey))
-            {
-                // Parse the signing key from environment variables, since it was not found in app settings
-                value = Environment.GetEnvironmentVariable(MobileAppSettingsKeys.WebsiteAuthSigningKey);
-                if (!string.IsNullOrEmpty(value))
-                {
-                    settings.SigningKey = value.Trim();
                 }
             }
 

@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
     public class MobileAppTokenHandlerTests
     {
         private readonly string TestSecretKey = "69dfd814c383dda4ea7aaeb26e605d419011e7ef3863d5cd2eee7a3607ec8f4d"; // SHA256 hash of 'l9dsa634ksfdlds;lkw43-psdfd'
-        private const string TestWebsiteUrl = "https://fakesite.fakeazurewebsites.net/";
+        private readonly string[] TestWebsiteUrls = new string[] { "https://fakesite.fakeazurewebsites.net/" };
 
         private static readonly TimeSpan Lifetime = TimeSpan.FromDays(10);
         private static readonly Claim[] DefaultClaims = new Claim[] { new Claim("sub", "my:userid") };
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
         private HttpConfiguration config;
         private Mock<MobileAppTokenHandler> tokenHandlerMock;
         private MobileAppTokenHandler tokenHandler;
-        private FacebookCredentials credentials;        
+        private FacebookCredentials credentials;
 
         public MobileAppTokenHandlerTests()
         {
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
         [Fact]
         public void CreateTokenInfo_AndValidateLoginToken_Works()
         {
-            MobileAppAuthenticationOptions options = CreateTestOptions();
+            AppServiceAuthenticationOptions options = CreateTestOptions();
 
             Claim[] claims = new Claim[]
             {
@@ -113,7 +113,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
             };
 
             // Create a login token for the provider
-            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, TestSecretKey, TestWebsiteUrl, TestWebsiteUrl, Lifetime);
+            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, TestSecretKey, TestWebsiteUrls[0], TestWebsiteUrls[0], Lifetime);
 
             this.ValidateLoginToken(token.RawData, options);
         }
@@ -138,23 +138,23 @@ namespace Microsoft.Azure.Mobile.Server.Security
         [MemberData("TokenData")]
         public void TryValidateLoginToken_AcceptsPreviousTokenVersions(string tokenValue)
         {
-            MobileAppAuthenticationOptions options = CreateTestOptions();
+            AppServiceAuthenticationOptions options = CreateTestOptions();
             this.ValidateLoginToken(tokenValue, options);
         }
 
-        private void ValidateLoginToken(string token, MobileAppAuthenticationOptions options)
+        private void ValidateLoginToken(string token, AppServiceAuthenticationOptions options)
         {
             // validate the token and get the claims principal
             ClaimsPrincipal claimsPrincipal = null;
-            Assert.True(this.tokenHandler.TryValidateLoginToken(token, options.SigningKey, TestWebsiteUrl, TestWebsiteUrl, out claimsPrincipal));
+            Assert.True(this.tokenHandler.TryValidateLoginToken(token, options.SigningKey, TestWebsiteUrls, TestWebsiteUrls, out claimsPrincipal));
         }
 
         [Fact]
         public void TryValidateLoginToken_RejectsMalformedTokens()
         {
-            MobileAppAuthenticationOptions options = CreateTestOptions();
+            AppServiceAuthenticationOptions options = CreateTestOptions();
             ClaimsPrincipal claimsPrincipal = null;
-            bool result = this.tokenHandler.TryValidateLoginToken("this is not a valid jwt", options.SigningKey, TestWebsiteUrl, TestWebsiteUrl, out claimsPrincipal);
+            bool result = this.tokenHandler.TryValidateLoginToken("this is not a valid jwt", options.SigningKey, TestWebsiteUrls, TestWebsiteUrls, out claimsPrincipal);
             Assert.False(result);
             Assert.Null(claimsPrincipal);
         }
@@ -162,12 +162,12 @@ namespace Microsoft.Azure.Mobile.Server.Security
         [Fact]
         public void TryValidateLoginToken_RejectsTokensSignedWithWrongKey()
         {
-            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(DefaultClaims, TestSecretKey, TestWebsiteUrl, TestWebsiteUrl, null);
+            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(DefaultClaims, TestSecretKey, TestWebsiteUrls[0], TestWebsiteUrls[0], null);
 
             ClaimsPrincipal claimsPrincipal = null;
 
             string anotherKey = "f12aca0581d81554852c5cb1314ee230395b349bdf828bb3e1ce8d556cfd4c5a"; // SHA256 hash of 'another_key'
-            bool isValid = this.tokenHandler.TryValidateLoginToken(token.RawData, anotherKey, TestWebsiteUrl, TestWebsiteUrl, out claimsPrincipal);
+            bool isValid = this.tokenHandler.TryValidateLoginToken(token.RawData, anotherKey, TestWebsiteUrls, TestWebsiteUrls, out claimsPrincipal);
             Assert.False(isValid);
             Assert.Null(claimsPrincipal);
         }
@@ -224,12 +224,11 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public void ValidateToken_ThrowsSecurityTokenValidationException_WhenValidFromIsAfterCurrentTime()
         {
             // Arrange
-            string audience = TestWebsiteUrl;
-            string issuer = TestWebsiteUrl;
+            string audience = TestWebsiteUrls[0];
+            string issuer = TestWebsiteUrls[0];
             TimeSpan lifetimeFiveMinute = new TimeSpan(0, 5, 0);
             DateTime tokenCreationDateInFuture = DateTime.UtcNow + new TimeSpan(1, 0, 0);
             DateTime tokenExpiryDate = tokenCreationDateInFuture + lifetimeFiveMinute;
-
 
             SecurityTokenDescriptor tokenDescriptor = this.GetTestSecurityTokenDescriptor(tokenCreationDateInFuture, tokenExpiryDate, audience, issuer);
 
@@ -247,8 +246,8 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public void ValidateToken_ThrowsSecurityTokenValidationException_WhenTokenExpired()
         {
             // Arrange
-            string audience = TestWebsiteUrl;
-            string issuer = TestWebsiteUrl;
+            string audience = TestWebsiteUrls[0];
+            string issuer = TestWebsiteUrls[0];
             TimeSpan lifetime = new TimeSpan(0, 0, 1);
             DateTime tokenCreationDate = DateTime.UtcNow + new TimeSpan(-1, 0, 0);
             DateTime tokenExpiryDate = tokenCreationDate + lifetime;
@@ -271,7 +270,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public void ValidateToken_ThrowsSecurityTokenValidationException_WhenIssuerIsBlank()
         {
             // Arrange
-            string audience = TestWebsiteUrl;
+            string audience = TestWebsiteUrls[0];
             string issuer = "";
             TimeSpan lifetime = new TimeSpan(24, 0, 0);
             DateTime tokenCreationDate = DateTime.UtcNow;
@@ -295,8 +294,8 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public void ValidateToken_PassesWithValidToken()
         {
             // Arrange
-            string audience = TestWebsiteUrl;
-            string issuer = TestWebsiteUrl;
+            string audience = TestWebsiteUrls[0];
+            string issuer = TestWebsiteUrls[0];
             TimeSpan lifetime = new TimeSpan(24, 0, 0);
             DateTime tokenCreationDate = DateTime.UtcNow;
             DateTime tokenExpiryDate = tokenCreationDate + lifetime;
@@ -315,8 +314,8 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public void ValidateToken_ThrowsArgumentException_WithMalformedToken()
         {
             // Arrange
-            string audience = TestWebsiteUrl;
-            string issuer = TestWebsiteUrl;
+            string audience = TestWebsiteUrls[0];
+            string issuer = TestWebsiteUrls[0];
             TimeSpan lifetime = new TimeSpan(24, 0, 0);
             DateTime tokenCreationDate = DateTime.UtcNow;
             DateTime tokenExpiryDate = tokenCreationDate + lifetime;
@@ -361,9 +360,9 @@ namespace Microsoft.Azure.Mobile.Server.Security
             Assert.Equal("abc123", credentials.AccessToken);
         }
 
-        private MobileAppAuthenticationOptions CreateTestOptions()
+        private AppServiceAuthenticationOptions CreateTestOptions()
         {
-            MobileAppAuthenticationOptions options = new MobileAppAuthenticationOptions
+            AppServiceAuthenticationOptions options = new AppServiceAuthenticationOptions
             {
                 SigningKey = TestSecretKey,
             };

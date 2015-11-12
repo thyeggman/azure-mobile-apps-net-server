@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
@@ -18,11 +19,11 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
         /// </summary>
         /// <param name="token">A <see cref="string"/> representation of the authentication token to validate.</param>
         /// <param name="signingKey">The secret key with which the token has been signed.</param>
-        /// <param name="audience">The valid audience to accept in token validation.</param>
-        /// <param name="issuer">The valid issuer to accept in token validation.</param>
+        /// <param name="validAudiences">The valid audiences to accept in token validation.</param>
+        /// <param name="validIssuers">The valid issuers to accept in token validation.</param>
         /// <param name="claimsPrincipal">The resulting <see cref="ClaimsPrincipal"/> if the token is valid; null otherwise.</param>
         /// <returns><c>true</c> if <paramref name="token"/> is valid; otherwise <c>false</c>/</returns>
-        bool TryValidateLoginToken(string token, string signingKey, string audience, string issuer, out ClaimsPrincipal claimsPrincipal);
+        bool TryValidateLoginToken(string token, string signingKey, IEnumerable<string> validAudiences, IEnumerable<string> validIssuers, out ClaimsPrincipal claimsPrincipal);
 
         /// <summary>
         /// Creates a user id value contained within a <see cref="ProviderCredentials"/>. The user id is of the form

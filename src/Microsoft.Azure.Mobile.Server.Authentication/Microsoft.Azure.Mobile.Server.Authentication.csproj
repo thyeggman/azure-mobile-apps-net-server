@@ -111,7 +111,6 @@
     <Compile Include="AppService\AppServiceHttpClient.cs" />
     <Compile Include="AppService\ClaimSlim.cs" />
     <Compile Include="AppService\TokenEntry.cs" />
-    <Compile Include="AppServiceAuthenticationMode.cs" />
     <Compile Include="Extensions\IPrincipalExtensions.cs" />
     <Compile Include="Credentials\AzureActiveDirectoryCredentials.cs" />
     <Compile Include="Extensions\MobileAppAuthenticationAppBuilderExtensions.cs" />
@@ -120,7 +119,7 @@
     <Compile Include="Credentials\GoogleCredentials.cs" />
     <Compile Include="IMobileAppTokenHandler.cs" />
     <Compile Include="Credentials\MicrosoftAccountCredentials.cs" />
-    <Compile Include="Middleware\MobileAppAuthenticationHandler.cs" />
+    <Compile Include="Middleware\AppServiceAuthenticationHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProviderCredentials.cs" />
     <Compile Include="Properties\RResources.Designer.cs">
@@ -128,8 +127,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Middleware\MobileAppAuthenticationMiddleware.cs" />
-    <Compile Include="Middleware\MobileAppAuthenticationOptions.cs" />
+    <Compile Include="Middleware\AppServiceAuthenticationMiddleware.cs" />
+    <Compile Include="Middleware\AppServiceAuthenticationOptions.cs" />
     <Compile Include="MobileAppTokenHandler.cs" />
     <Compile Include="Credentials\TwitterCredentials.cs" />
   </ItemGroup>
