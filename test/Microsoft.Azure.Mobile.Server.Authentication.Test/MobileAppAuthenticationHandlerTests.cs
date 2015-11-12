@@ -20,8 +20,6 @@ namespace Microsoft.Azure.Mobile.Server.Security
 {
     public class MobileAppAuthenticationHandlerTests
     {
-        private HttpConfiguration config;
-        private MobileAppTokenHandler tokenHandler;
         private Mock<ILogger> loggerMock;
 
         private const string TestWebsiteUrl = @"https://faketestapp.faketestazurewebsites.net/";
@@ -31,8 +29,6 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
         public MobileAppAuthenticationHandlerTests()
         {
-            this.config = new HttpConfiguration();
-            this.tokenHandler = new MobileAppTokenHandler(this.config);
             this.loggerMock = new Mock<ILogger>();
         }
 
@@ -90,19 +86,20 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public void Authenticate_CorrectlyAuthenticates(string otherSigningKey, bool expectAuthenticated)
         {
             // Arrange
-            MobileAppAuthenticationOptions optionsDefault = CreateTestOptions();
+            HttpConfiguration config = new HttpConfiguration();
+            AppServiceAuthenticationOptions optionsDefault = CreateTestOptions(config);
             optionsDefault.SigningKey = SigningKeyAlpha;
 
-            MobileAppAuthenticationOptions optionsOtherSigningKey = CreateTestOptions();
+            AppServiceAuthenticationOptions optionsOtherSigningKey = CreateTestOptions(config);
             optionsOtherSigningKey.SigningKey = otherSigningKey;
 
-            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object, this.tokenHandler);
+            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object);
             var request = CreateAuthRequest(new Uri(TestWebsiteUrl), GetTestToken());
 
             // Act
             AuthenticationTicket authTicket = mock.Authenticate(request, optionsOtherSigningKey);
 
-            // Assert            
+            // Assert
             if (expectAuthenticated)
             {
                 // ensure the AuthenticationTicket is set correctly
@@ -122,9 +119,9 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public void Authenticate_FailsToAuthenticate_ValidIdentity_WithoutSigningKey()
         {
             // Arrange
-            MobileAppAuthenticationOptions options = CreateTestOptions();
+            AppServiceAuthenticationOptions options = CreateTestOptions(new HttpConfiguration());
 
-            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object, this.tokenHandler);
+            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object);
             var request = CreateAuthRequest(new Uri(TestWebsiteUrl), GetTestToken());
 
             options.SigningKey = null;
@@ -132,7 +129,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
             // Act
             AuthenticationTicket authticket = mock.Authenticate(request, options);
 
-            // Assert            
+            // Assert
             Assert.NotNull(authticket);
             Assert.NotNull(authticket.Identity);
             Assert.False(authticket.Identity.IsAuthenticated, "Expected Authenticate to fail without signing key specified in MobileAppAuthenticationOptions");
@@ -142,14 +139,14 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public void Authenticate_Fails_WithInvalidAudience()
         {
             // Arrange
-            MobileAppAuthenticationOptions options = CreateTestOptions();
-            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object, this.tokenHandler);
+            AppServiceAuthenticationOptions options = CreateTestOptions(new HttpConfiguration());
+            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object);
             var request = CreateAuthRequest(new Uri(TestWebsiteUrl), GetTestToken(audience: "https://invalidAudience/"));
 
             // Act
             AuthenticationTicket authticket = mock.Authenticate(request, options);
 
-            // Assert            
+            // Assert
             Assert.NotNull(authticket);
             Assert.NotNull(authticket.Identity);
             Assert.False(authticket.Identity.IsAuthenticated, "Expected Authenticate to fail with invalid audience");
@@ -159,14 +156,14 @@ namespace Microsoft.Azure.Mobile.Server.Security
         public void Authenticate_Fails_WithInvalidIssuer()
         {
             // Arrange
-            MobileAppAuthenticationOptions options = CreateTestOptions();
-            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object, this.tokenHandler);
+            AppServiceAuthenticationOptions options = CreateTestOptions(new HttpConfiguration());
+            var mock = new MobileAppAuthenticationHandlerMock(this.loggerMock.Object);
             var request = CreateAuthRequest(new Uri(TestWebsiteUrl), GetTestToken(issuer: "https://invalidIssuer/"));
 
             // Act
             AuthenticationTicket authticket = mock.Authenticate(request, options);
 
-            // Assert            
+            // Assert
             Assert.NotNull(authticket);
             Assert.NotNull(authticket.Identity);
             Assert.False(authticket.Identity.IsAuthenticated, "Expected Authenticate to fail with invalid issuer");
@@ -209,7 +206,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
         /// Makes a test token out of the specified claims, or a set of default claims if claims is unspecified.
         /// </summary>
         /// <param name="claims">The claims identity to make a token. Issuer and Audience in the claims will not be changed.</param>
-        /// <param name="options">The <see cref="MobileAppAuthenticationOptions"/> object that wraps the signing key.</param>
+        /// <param name="options">The <see cref="AppServiceAuthenticationOptions"/> object that wraps the signing key.</param>
         /// <param name="audience">The accepted valid audience used if claims is unspecified.</param>
         /// <param name="issuer">The accepted valid issuer used if claims is unspecified.</param>
         /// <returns></returns>
@@ -223,7 +220,6 @@ namespace Microsoft.Azure.Mobile.Server.Security
                 claims.Add(new Claim(ClaimTypes.Surname, "Miller"));
                 claims.Add(new Claim(ClaimTypes.Role, "Admin"));
                 claims.Add(new Claim("my_custom_claim", "MyClaimValue"));
-
             }
 
             return MobileAppLoginHandler.CreateToken(claims, signingKey, audience, issuer, TimeSpan.FromDays(10));
@@ -246,36 +242,35 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
             if (token != null)
             {
-                request.Headers.Append(MobileAppAuthenticationHandler.AuthenticationHeaderName, token.RawData);
+                request.Headers.Append(AppServiceAuthenticationHandler.AuthenticationHeaderName, token.RawData);
             }
 
             return request;
         }
 
-        internal class MobileAppAuthenticationHandlerMock : MobileAppAuthenticationHandler
+        internal class MobileAppAuthenticationHandlerMock : AppServiceAuthenticationHandler
         {
-            public MobileAppAuthenticationHandlerMock(ILogger logger, IMobileAppTokenHandler tokenHandler)
-                : base(logger, tokenHandler)
+            public MobileAppAuthenticationHandlerMock(ILogger logger)
+                : base(logger)
             {
             }
 
-            public new AuthenticationTicket Authenticate(IOwinRequest request, MobileAppAuthenticationOptions options)
+            public new AuthenticationTicket Authenticate(IOwinRequest request, AppServiceAuthenticationOptions options)
             {
                 return base.Authenticate(request, options);
             }
         }
 
-        private static MobileAppAuthenticationOptions CreateTestOptions(string signingKey = null)
+        private static AppServiceAuthenticationOptions CreateTestOptions(HttpConfiguration config)
         {
-            MobileAppAuthenticationOptions options = new MobileAppAuthenticationOptions
+            AppServiceAuthenticationOptions options = new AppServiceAuthenticationOptions
             {
-                SigningKey = signingKey,
+                ValidAudiences = new[] { TestWebsiteUrl },
+                ValidIssuers = new[] { TestWebsiteUrl },
+                SigningKey = SigningKeyAlpha,
+                TokenHandler = config.GetMobileAppTokenHandler()
             };
 
-            if (string.IsNullOrEmpty(signingKey))
-            {
-                options.SigningKey = SigningKeyAlpha;
-            }
             return options;
         }
     }

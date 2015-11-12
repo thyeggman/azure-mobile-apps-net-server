@@ -41,7 +41,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
         [Fact]
         public void UserPropertiesAreValid()
-        {            
+        {
             // Act
             ClaimsPrincipal user = this.CreateTestUser();
 
@@ -220,7 +220,6 @@ namespace Microsoft.Azure.Mobile.Server.Security
             Assert.True(result);
         }
 
-
         [Theory]
         [InlineData(null)]
         [InlineData("")]
@@ -258,7 +257,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
         /// </summary>
         private ClaimsPrincipal CreateTestUser()
         {
-            MobileAppAuthenticationOptions options = CreateTestOptions();
+            AppServiceAuthenticationOptions options = CreateTestOptions();
 
             Claim[] claims = new Claim[]
             {
@@ -268,7 +267,8 @@ namespace Microsoft.Azure.Mobile.Server.Security
             JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, TestSigningKey, TestLocalhostUrl, TestLocalhostUrl, TimeSpan.FromDays(10));
 
             ClaimsPrincipal user = null;
-            this.tokenHandler.TryValidateLoginToken(token.RawData, options.SigningKey, TestLocalhostUrl, TestLocalhostUrl, out user);
+            string[] validIssAud = new[] { TestLocalhostUrl };
+            this.tokenHandler.TryValidateLoginToken(token.RawData, options.SigningKey, validIssAud, validIssAud, out user);
 
             return user;
         }
@@ -281,9 +281,9 @@ namespace Microsoft.Azure.Mobile.Server.Security
             return claimsIdentityMock.Object;
         }
 
-        private MobileAppAuthenticationOptions CreateTestOptions()
+        private AppServiceAuthenticationOptions CreateTestOptions()
         {
-            MobileAppAuthenticationOptions options = new MobileAppAuthenticationOptions
+            AppServiceAuthenticationOptions options = new AppServiceAuthenticationOptions
             {
                 SigningKey = TestSigningKey,
             };

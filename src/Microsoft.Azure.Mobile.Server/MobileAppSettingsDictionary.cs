@@ -86,22 +86,6 @@ namespace Microsoft.Azure.Mobile.Server
         }
 
         /// <summary>
-        /// Gets or sets the key used for signing and validating authentication tokens.
-        /// </summary>
-        public virtual string SigningKey
-        {
-            get
-            {
-                return this.GetSetting(MobileAppSettingsKeys.WebsiteAuthSigningKey);
-            }
-
-            set
-            {
-                this.SetSetting(MobileAppSettingsKeys.WebsiteAuthSigningKey, value);
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the name of the Notification Hub associated with this service for handling
         /// push notifications.
         /// </summary>

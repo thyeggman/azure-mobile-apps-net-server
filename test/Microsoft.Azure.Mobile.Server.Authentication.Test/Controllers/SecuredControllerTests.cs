@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Net;
@@ -46,10 +47,10 @@ namespace Microsoft.Azure.Mobile.Server
             string audience = TestLocalhostName;
             string issuer = TestLocalhostName;
 
-            JwtSecurityToken token = context.GetTestToken(context.Settings.SigningKey, audience, issuer);
+            JwtSecurityToken token = context.GetTestToken(context.SigningKey, audience, issuer);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/anonymous");
-            request.Headers.Add(MobileAppAuthenticationHandler.AuthenticationHeaderName, token.RawData);
+            request.Headers.Add(AppServiceAuthenticationHandler.AuthenticationHeaderName, token.RawData);
             HttpResponseMessage response = await context.Client.SendAsync(request);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -68,7 +69,7 @@ namespace Microsoft.Azure.Mobile.Server
             JwtSecurityToken token = context.GetTestToken(SigningKeyBeta, audience, issuer);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/application");
-            request.Headers.Add(MobileAppAuthenticationHandler.AuthenticationHeaderName, token.RawData);
+            request.Headers.Add(AppServiceAuthenticationHandler.AuthenticationHeaderName, token.RawData);
             HttpResponseMessage response = await context.Client.SendAsync(request);
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -81,7 +82,7 @@ namespace Microsoft.Azure.Mobile.Server
             string malformedToken = "no way is this a jwt";
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/anonymous");
-            request.Headers.Add(MobileAppAuthenticationHandler.AuthenticationHeaderName, malformedToken);
+            request.Headers.Add(AppServiceAuthenticationHandler.AuthenticationHeaderName, malformedToken);
             HttpResponseMessage response = await context.Client.SendAsync(request);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -94,7 +95,7 @@ namespace Microsoft.Azure.Mobile.Server
             string malformedToken = "no way is this a jwt";
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/application");
-            request.Headers.Add(MobileAppAuthenticationHandler.AuthenticationHeaderName, malformedToken);
+            request.Headers.Add(AppServiceAuthenticationHandler.AuthenticationHeaderName, malformedToken);
             HttpResponseMessage response = await context.Client.SendAsync(request);
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -128,10 +129,10 @@ namespace Microsoft.Azure.Mobile.Server
             string audience = TestLocalhostName;
             string issuer = TestLocalhostName;
 
-            JwtSecurityToken token = context.GetTestToken(context.Settings.SigningKey, audience, issuer);
+            JwtSecurityToken token = context.GetTestToken(context.SigningKey, audience, issuer);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/user");
-            request.Headers.Add(MobileAppAuthenticationHandler.AuthenticationHeaderName, token.RawData);
+            request.Headers.Add(AppServiceAuthenticationHandler.AuthenticationHeaderName, token.RawData);
             HttpResponseMessage response = await context.Client.SendAsync(request);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -147,7 +148,7 @@ namespace Microsoft.Azure.Mobile.Server
             string audience = TestLocalhostName;
             string issuer = TestLocalhostName;
 
-            JwtSecurityToken token = context.GetTestToken(context.Settings.SigningKey, audience, issuer);
+            JwtSecurityToken token = context.GetTestToken(context.SigningKey, audience, issuer);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/user");
             request.Headers.Add(authHeaderName, token.RawData);
@@ -177,10 +178,10 @@ namespace Microsoft.Azure.Mobile.Server
             string audience = TestLocalhostName;
             string issuer = TestLocalhostName;
 
-            JwtSecurityToken token = context.GetTestToken(context.Settings.SigningKey, audience, issuer);
+            JwtSecurityToken token = context.GetTestToken(context.SigningKey, audience, issuer);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, action);
-            request.Headers.Add(MobileAppAuthenticationHandler.AuthenticationHeaderName, token.RawData);
+            request.Headers.Add(AppServiceAuthenticationHandler.AuthenticationHeaderName, token.RawData);
             HttpResponseMessage response = await context.Client.SendAsync(request);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -208,6 +209,12 @@ namespace Microsoft.Azure.Mobile.Server
 
             public MobileAppSettingsDictionary Settings { get; private set; }
 
+            public string SigningKey { get; set; }
+
+            public IEnumerable<string> ValidAudiences { get; set; }
+
+            public IEnumerable<string> ValidIssuers { get; set; }
+
             public static TestContext Create()
             {
                 TestContext context = new TestContext();
@@ -230,15 +237,28 @@ namespace Microsoft.Azure.Mobile.Server
                     .ApplyTo(config);
 
                 // setup test authorization config values
-                IMobileAppSettingsProvider settingsProvider = config.GetMobileAppSettingsProvider();
-                var settings = settingsProvider.GetMobileAppSettings();
-                settings.SigningKey = SigningKeyAlpha;
+                this.SigningKey = SigningKeyAlpha;
+                this.ValidAudiences = new[] { TestLocalhostName };
+                this.ValidIssuers = new[] { TestLocalhostName };
 
                 return TestServer.Create((appBuilder) =>
                 {
-                    appBuilder.UseAppServiceAuthentication(config, AppServiceAuthenticationMode.LocalOnly);
+                    appBuilder.UseAppServiceAuthentication(this.GetMobileAppAuthOptions(config));
                     appBuilder.UseWebApi(config);
                 });
+            }
+
+            private AppServiceAuthenticationOptions GetMobileAppAuthOptions(HttpConfiguration config)
+            {
+                MobileAppSettingsDictionary settings = config.GetMobileAppSettingsProvider().GetMobileAppSettings();
+
+                return new AppServiceAuthenticationOptions
+                {
+                    SigningKey = this.SigningKey,
+                    ValidAudiences = this.ValidAudiences,
+                    ValidIssuers = this.ValidIssuers,
+                    TokenHandler = config.GetMobileAppTokenHandler()
+                };
             }
 
             public JwtSecurityToken GetTestToken(string secretKey, string audience, string issuer)

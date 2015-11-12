@@ -1,6 +1,6 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -41,25 +41,20 @@ namespace Microsoft.Azure.Mobile.Server.Config
             // Arrange
             MobileAppConfiguration configOptions = new MobileAppConfiguration();
             this.config.SetMobileAppConfiguration(configOptions);
-            MobileAppAuthenticationOptions options = null;
-            this.appBuilderMock.Setup(a => a.Properties)
-                .Returns(new Dictionary<string, object>
-                { 
-                    { "integratedpipeline.StageMarker", (Action<IAppBuilder, string>)((app, stageName) => { }) }
-                });
+            AppServiceAuthenticationOptions options = new AppServiceAuthenticationOptions();
+
             this.appBuilderMock.Setup(p => p.Use(It.IsAny<object>(), It.IsAny<object[]>()))
                 .Callback<object, object[]>((mockObject, mockArgs) =>
                 {
-                    options = (MobileAppAuthenticationOptions)mockArgs[1];
+                    options = (AppServiceAuthenticationOptions)mockArgs[1];
                 })
                 .Returns(this.appBuilder)
                 .Verifiable();
 
             // Act
-            this.appBuilder.UseAppServiceAuthentication(this.config, AppServiceAuthenticationMode.LocalOnly);
+            this.appBuilder.UseAppServiceAuthentication(options);
 
             // Assert
-            // We expect three pieces of middleware to be added
             this.appBuilderMock.Verify(p => p.Use(It.IsAny<object>(), It.IsAny<object[]>()), Times.Once);
             Assert.Equal("MobileApp", options.AuthenticationType);
         }

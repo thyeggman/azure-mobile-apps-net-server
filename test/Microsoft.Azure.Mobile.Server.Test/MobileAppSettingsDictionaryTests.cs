@@ -1,6 +1,6 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -51,13 +51,6 @@ namespace Microsoft.Azure.Mobile.Server.Config
         {
             this.settings[MobileAppSettingsKeys.SubscriptionId] = "DefaultSubId";
             PropertyAssert.Roundtrips(this.settings, s => s.SubscriptionId, PropertySetter.NullRoundtrips, defaultValue: "DefaultSubId", roundtripValue: "Value");
-        }
-
-        [Fact]
-        public void SigningKey_Roundtrips()
-        {
-            this.settings[MobileAppSettingsKeys.WebsiteAuthSigningKey] = "DefaultSigningKey";
-            PropertyAssert.Roundtrips(this.settings, s => s.SigningKey, PropertySetter.NullRoundtrips, defaultValue: "DefaultSigningKey", roundtripValue: "Value");
         }
 
         [Fact]

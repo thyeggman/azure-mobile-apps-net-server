@@ -1,10 +1,11 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.Data.Entity;
 using System.Text;
 using System.Web.Http;
@@ -46,7 +47,20 @@ namespace Local
             Database.SetInitializer(new GreenInitializer());
             Database.SetInitializer(new BrownInitializer());
 
-            app.UseAppServiceAuthentication(config, AppServiceAuthenticationMode.LocalOnly);
+            MobileAppSettingsDictionary settings = config.GetMobileAppSettingsProvider().GetMobileAppSettings();
+
+            if (string.IsNullOrEmpty(settings.HostName))
+            {
+                // This middleware is intended to be used locally for debugging. By default, HostName will
+                // only have a value when running in an App Service application.
+                app.UseAppServiceAuthentication(new AppServiceAuthenticationOptions
+                {
+                    SigningKey = ConfigurationManager.AppSettings["SigningKey"],
+                    ValidAudiences = new[] { ConfigurationManager.AppSettings["ValidAudience"] },
+                    ValidIssuers = new[] { ConfigurationManager.AppSettings["ValidIssuer"] },
+                    TokenHandler = config.GetMobileAppTokenHandler()
+                });
+            }
             app.UseWebApi(config);
         }
     }

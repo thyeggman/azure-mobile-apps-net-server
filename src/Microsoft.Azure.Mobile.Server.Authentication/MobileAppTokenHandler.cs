@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.ServiceModel.Security.Tokens;
@@ -10,7 +11,7 @@ using System.Web.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.Azure.Mobile.Server.Authentication
+namespace Microsoft.Azure.Mobile.Server.Authentication 
 {
     /// <summary>
     /// Provides a default implementation of the <see cref="IMobileAppTokenHandler"/> interface.
@@ -33,7 +34,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
         }
 
         /// <inheritdoc />
-        public virtual bool TryValidateLoginToken(string token, string signingKey, string audience, string issuer, out ClaimsPrincipal claimsPrincipal)
+        public virtual bool TryValidateLoginToken(string token, string signingKey, IEnumerable<string> validAudiences, IEnumerable<string> validIssuers, out ClaimsPrincipal claimsPrincipal)
         {
             if (token == null)
             {
@@ -61,9 +62,9 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
             TokenValidationParameters validationParams = new TokenValidationParameters
             {
                 ValidateAudience = true,
-                ValidAudience = audience,
+                ValidAudiences = validAudiences,
                 ValidateIssuer = true,
-                ValidIssuer = issuer,
+                ValidIssuers = validIssuers,
                 ValidateLifetime = parsedToken.Payload.Exp.HasValue  // support tokens with no expiry
             };
 

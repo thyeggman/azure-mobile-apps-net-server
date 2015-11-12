@@ -30,7 +30,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
     public class MobileAppConfigSetupTests
     {
         private const string TestWebsiteUrl = "http://localhost/";
-        private static MobileAppSettingsDictionary settings;
+        private const string SigningKey = "bMyklciUDJxqSxtSiJlSusbiZrMnuG99";
 
         public static TheoryDataCollection<AuthenticationMode, bool, bool> AuthStatusData
         {
@@ -65,8 +65,6 @@ namespace Microsoft.Azure.Mobile.Server.Config
                     .UseDefaultConfiguration()
                     .ApplyTo(config);
 
-                settings = config.GetMobileAppSettingsProvider().GetMobileAppSettings();
-
                 var pushClientMock = new Mock<PushClient>(config);
                 pushClientMock.Setup(p => p.CreateOrUpdateInstallationAsync(It.IsAny<Installation>()))
                     .Returns(Task.FromResult(0));
@@ -80,10 +78,10 @@ namespace Microsoft.Azure.Mobile.Server.Config
                     if (mode == AuthenticationMode.Passive)
                     {
                         config.SuppressDefaultHostAuthentication();
-                        config.Filters.Add(new HostAuthenticationFilter(MobileAppAuthenticationOptions.AuthenticationName));
+                        config.Filters.Add(new HostAuthenticationFilter(AppServiceAuthenticationOptions.AuthenticationName));
                     }
 
-                    app.UseAppServiceAuthentication(config, AppServiceAuthenticationMode.LocalOnly, mode);
+                    app.UseAppServiceAuthentication(GetMobileAppAuthOptions(config, mode));
                 }
 
                 app.UseWebApi(config);
@@ -137,6 +135,18 @@ namespace Microsoft.Azure.Mobile.Server.Config
             }
         }
 
+        private static AppServiceAuthenticationOptions GetMobileAppAuthOptions(HttpConfiguration config, AuthenticationMode mode)
+        {
+            return new AppServiceAuthenticationOptions
+            {
+                ValidAudiences = new[] { TestWebsiteUrl },
+                ValidIssuers = new[] { TestWebsiteUrl },
+                SigningKey = SigningKey,
+                TokenHandler = config.GetMobileAppTokenHandler(),
+                AuthenticationMode = mode
+            };
+        }
+
         private static void ValidateHeaders(HttpResponseMessage response, bool isMobileController)
         {
             IEnumerable<string> versions = response.Headers.Where(h => h.Key.ToUpperInvariant() == "X-ZUMO-SERVER-VERSION").SelectMany(h => h.Value);
@@ -163,7 +173,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
             {
                 new Claim("sub", "Facebook:1234")
             };
-            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, settings.SigningKey, TestWebsiteUrl, TestWebsiteUrl, TimeSpan.FromDays(30));
+            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, SigningKey, TestWebsiteUrl, TestWebsiteUrl, TimeSpan.FromDays(30));
             return token;
         }
 
@@ -190,7 +200,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
             {
                 if (this.isAuthenticated)
                 {
-                    request.Headers.Add(MobileAppAuthenticationHandler.AuthenticationHeaderName, GetTestToken().RawData);
+                    request.Headers.Add(AppServiceAuthenticationHandler.AuthenticationHeaderName, GetTestToken().RawData);
                 }
 
                 return await base.SendAsync(request, cancellationToken);
