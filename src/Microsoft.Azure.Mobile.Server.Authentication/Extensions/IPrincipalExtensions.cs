@@ -1,13 +1,18 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.IdentityModel.Tokens;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web.Http;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Authentication.AppService;
+using Microsoft.Azure.Mobile.Server.Properties;
 
 namespace System.Security.Principal
 {
@@ -16,20 +21,31 @@ namespace System.Security.Principal
     {
         private const string ObjectIdentifierClaimType = @"http://schemas.microsoft.com/identity/claims/objectidentifier";
         private const string TenantIdClaimType = @"http://schemas.microsoft.com/identity/claims/tenantid";
+        private static HttpClient client = new HttpClient();
 
         /// <summary>
-        /// Gets the identity provider specific identity details for the <see cref="IPrincipal"/> making the request. 
+        /// Gets the identity provider specific identity details for the <see cref="IPrincipal"/> making the request.
         /// </summary>
         /// <param name="principal">The <see cref="IPrincipal"/> object.</param>
         /// <param name="request">The request context.</param>
         /// <typeparam name="T">The provider type.</typeparam>
         /// <returns>The identity provider credentials if found, otherwise null.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", Justification = "Extension method")]
-        public static async Task<T> GetAppServiceIdentityAsync<T>(this IPrincipal principal, HttpRequestMessage request) where T : ProviderCredentials, new()
+        public static Task<T> GetAppServiceIdentityAsync<T>(this IPrincipal principal, HttpRequestMessage request) where T : ProviderCredentials, new()
+        {
+            return principal.GetAppServiceIdentityAsync<T>(request, client);
+        }
+
+        public static async Task<T> GetAppServiceIdentityAsync<T>(this IPrincipal principal, HttpRequestMessage request, HttpClient httpClient) where T : ProviderCredentials, new()
         {
             if (request == null)
             {
                 throw new ArgumentNullException("request");
+            }
+
+            ClaimsPrincipal user = principal as ClaimsPrincipal;
+            if (user == null)
+            {
+                throw new ArgumentOutOfRangeException(RResources.ParameterMustBeOfType.FormatInvariant("principal", typeof(ClaimsPrincipal).Name), (Exception)null);
             }
 
             // Get the token from the request
@@ -39,12 +55,26 @@ namespace System.Security.Principal
                 return null;
             }
 
-            string webappUrl = request.GetDomainName();
+            // Base the url on the issuer of the JWT
+            Claim issuerClaim = user.FindFirst(JwtRegisteredClaimNames.Iss);
+            if (issuerClaim == null)
+            {
+                throw new ArgumentOutOfRangeException(RResources.GetIdentity_ClaimsMustHaveIssuer, (Exception)null);
+            }
 
-            AppServiceHttpClient client = CreateAppServiceHttpClient(new Uri(webappUrl));
-
+            string issuerUrl = issuerClaim.Value;
             ProviderCredentials credentials = (ProviderCredentials)new T();
-            TokenEntry tokenEntry = await client.GetRawTokenAsync(zumoAuthToken, credentials.Provider);
+            TokenEntry tokenEntry = null;
+            AppServiceHttpClient appSvcClient = new AppServiceHttpClient(httpClient);
+
+            try
+            {
+                tokenEntry = await appSvcClient.GetRawTokenAsync(new Uri(issuerUrl), zumoAuthToken, credentials.Provider);
+            }
+            catch (HttpResponseException ex)
+            {
+                throw new InvalidOperationException(RResources.GetIdentity_HttpError.FormatInvariant(ex.Response.ToString()));
+            }
 
             if (!IsTokenValid(tokenEntry))
             {
@@ -54,11 +84,6 @@ namespace System.Security.Principal
             PopulateProviderCredentials(tokenEntry, credentials);
 
             return (T)credentials;
-        }
-
-        internal static AppServiceHttpClient CreateAppServiceHttpClient(Uri webAppUrl)
-        {
-            return new AppServiceHttpClient(webAppUrl);
         }
 
         internal static bool IsTokenValid(TokenEntry tokenEntry)

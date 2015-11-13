@@ -7,14 +7,17 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Authentication.AppService;
+using Microsoft.Azure.Mobile.Server.Authentication.Test;
 using Microsoft.Azure.Mobile.Server.Login;
 using Moq;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Azure.Mobile.Server.Security
@@ -194,8 +197,6 @@ namespace Microsoft.Azure.Mobile.Server.Security
             // Arrange
             // This is what is returned when a token is not found.
             TokenEntry tokenEntry = null;
-            {
-            };
 
             // Act
             bool result = IPrincipalExtensions.IsTokenValid(tokenEntry);
@@ -220,10 +221,42 @@ namespace Microsoft.Azure.Mobile.Server.Security
             Assert.True(result);
         }
 
+        [Fact]
+        public async Task GetIdentityAsync_Succeeds()
+        {
+            // Arrange
+            TokenEntry tokenEntry = new TokenEntry("facebook");
+            tokenEntry.UserId = "userId";
+            tokenEntry.AccessToken = "accessToken";
+            tokenEntry.UserClaims = new List<ClaimSlim>() { new ClaimSlim(ClaimTypes.NameIdentifier, "11111111") };
+
+            HttpResponseMessage response = CreateOkResponseWithContent(tokenEntry);
+            MockHttpMessageHandler handler = new MockHttpMessageHandler(response);
+
+            ClaimsPrincipal user = new ClaimsPrincipal(CreateMockClaimsIdentity(new[] { new Claim(JwtRegisteredClaimNames.Iss, "http://contoso.com") }, true));
+            HttpRequestMessage request = new HttpRequestMessage();
+            request.Headers.Add(AuthHeaderName, "token");
+
+            //Act
+            FacebookCredentials creds = await user.GetAppServiceIdentityAsync<FacebookCredentials>(request, new HttpClient(handler));
+
+            // Assert
+            Assert.Equal(tokenEntry.UserId, creds.UserId);
+            Assert.Equal(tokenEntry.AccessToken, creds.AccessToken);
+            Assert.Equal("Facebook", creds.Provider);
+            Assert.Equal(1, tokenEntry.UserClaims.Count());
+            ClaimSlim claim = tokenEntry.UserClaims[0];
+            Assert.Equal(ClaimTypes.NameIdentifier, claim.Type);
+            Assert.Equal("11111111", claim.Value);
+
+            Assert.Equal("http://contoso.com/.auth/me?provider=facebook", handler.ActualRequest.RequestUri.ToString());
+            Assert.Equal("token", handler.ActualRequest.GetHeaderOrDefault(AuthHeaderName));
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task GetIdentitiesAsync_ReturnsNull_IfMobileAppAuthenticationTokenIsNullOrEmpty(string token)
+        public async Task GetIdentityAsync_ReturnsNull_IfMobileAppAuthenticationTokenIsNullOrEmpty(string token)
         {
             // Arrange
             ClaimsPrincipal user = new ClaimsPrincipal(CreateMockClaimsIdentity(Enumerable.Empty<Claim>(), true));
@@ -239,7 +272,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
         }
 
         [Fact]
-        public async Task GetIdentitiesAsync_ReturnsNull_IfUserNotAuthenticated()
+        public async Task GetIdentityAsync_ReturnsNull_IfUserNotAuthenticated()
         {
             // Arrange
             ClaimsPrincipal user = new ClaimsPrincipal(CreateMockClaimsIdentity(Enumerable.Empty<Claim>(), false));
@@ -250,6 +283,35 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
             // Assert
             Assert.Null(tokenResult);
+        }
+
+        [Fact]
+        public async Task GetIdentityAsync_Throws_IfNotClaimsPrincipal()
+        {
+            // Arrange
+            TestPrincipal user = new TestPrincipal();
+            HttpRequestMessage request = new HttpRequestMessage();
+
+            // Act
+            ArgumentOutOfRangeException ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await user.GetAppServiceIdentityAsync<FacebookCredentials>(request));
+
+            // Assert
+            Assert.Equal("The 'principal' parameter must be of type 'ClaimsPrincipal'.", ex.Message);
+        }
+
+        [Fact]
+        public async Task GetIdentityAsync_Throws_IfNoIssuer()
+        {
+            // Arrange
+            ClaimsPrincipal user = new ClaimsPrincipal(CreateMockClaimsIdentity(new Claim[] { new Claim("notiss", "nope") }, true));
+            HttpRequestMessage request = new HttpRequestMessage();
+            request.Headers.Add(AuthHeaderName, "some jwt");
+
+            // Act
+            ArgumentOutOfRangeException ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await user.GetAppServiceIdentityAsync<FacebookCredentials>(request));
+
+            // Assert
+            Assert.Equal("The IPrincipal's Claims must contain an 'iss' Claim.", ex.Message);
         }
 
         /// <summary>
@@ -288,6 +350,24 @@ namespace Microsoft.Azure.Mobile.Server.Security
                 SigningKey = TestSigningKey,
             };
             return options;
+        }
+
+        private static HttpResponseMessage CreateOkResponseWithContent(object content)
+        {
+            HttpResponseMessage response = new HttpResponseMessage();
+            response.Content = new StringContent(JsonConvert.SerializeObject(content));
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            return response;
+        }
+
+        private class TestPrincipal : IPrincipal
+        {
+            public IIdentity Identity { get; set; }
+
+            public bool IsInRole(string role)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

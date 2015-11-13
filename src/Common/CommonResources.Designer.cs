@@ -104,5 +104,14 @@ namespace Microsoft.Azure.Mobile.Server.Properties {
                 return ResourceManager.GetString("HttpHeaderToken_Invalid", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be null..
+        /// </summary>
+        internal static string Property_CannotBeNull {
+            get {
+                return ResourceManager.GetString("Property_CannotBeNull", resourceCulture);
+            }
+        }
     }
 }

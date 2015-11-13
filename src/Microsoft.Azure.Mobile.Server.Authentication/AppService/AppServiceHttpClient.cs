@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Newtonsoft.Json.Linq;
@@ -18,28 +19,21 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.AppService
         private const string RuntimeUserAgent = "MobileAppNetServerSdk";
 
         private HttpClient client;
-        private Uri webappUri;
         private bool isDisposed;
 
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "We do this to allow this class to be mockable")]
-        internal AppServiceHttpClient(Uri webappUri)
+        internal AppServiceHttpClient(HttpClient client)
         {
-            this.webappUri = webappUri;
-            this.client = this.CreateHttpClient();
-        }
-
-        internal virtual HttpClient CreateHttpClient()
-        {
-            return new HttpClient();
+            this.client = client;
         }
 
         /// <summary>
         /// Calls the App Service Authentication module to retrieve the access token for the specified auth token and token provider name.
         /// </summary>
+        /// <param name="webAppUri">The Web site from which to request tokens. For example: 'https://www.contoso.com'.</param>
         /// <param name="authToken">The auth token that App Service Authentication issued for the current user. Used for authentication and identification.</param>
         /// <param name="tokenProviderName">The token provider for which the associated access token will be retrieved. 'Facebook', 'Google', or 'Twitter', for example.</param>
         /// <returns>A <see cref="TokenEntry"/> with user details.</returns>
-        internal virtual async Task<TokenEntry> GetRawTokenAsync(string authToken, string tokenProviderName)
+        internal virtual async Task<TokenEntry> GetRawTokenAsync(Uri webAppUri, string authToken, string tokenProviderName)
         {
             if (authToken == null)
             {
@@ -51,7 +45,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.AppService
                 throw new ArgumentNullException("tokenProviderName");
             }
 
-            Uri requestUri = new Uri(this.webappUri, AppServiceTokenAccessEndpointTemplate.FormatInvariant(tokenProviderName.ToLowerInvariant()));
+            Uri requestUri = new Uri(webAppUri, AppServiceTokenAccessEndpointTemplate.FormatInvariant(tokenProviderName.ToLowerInvariant()));
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             AddHeaders(request, authToken);
@@ -60,6 +54,11 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.AppService
             if (!response.IsSuccessStatusCode)
             {
                 throw new HttpResponseException(response);
+            }
+
+            if (response.Content == null)
+            {
+                return null;
             }
 
             // if the JSON returned is simply {}, return null
