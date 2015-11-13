@@ -69,7 +69,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
                 else
                 {
                     // We can't validate without the signing key.
-                    throw new InvalidOperationException(RResources.Authentication_MissingSigningKey);
+                    throw new InvalidOperationException(CommonResources.Property_CannotBeNull.FormatInvariant("SigningKey"));
                 }
             }
             catch (Exception ex)

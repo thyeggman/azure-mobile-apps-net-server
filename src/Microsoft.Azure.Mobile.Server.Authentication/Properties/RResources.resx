@@ -126,10 +126,16 @@
   <data name="Authentication_InvalidToken" xml:space="preserve">
     <value>Authentication failed due to an invalid token.</value>
   </data>
-  <data name="Authentication_MissingSigningKey" xml:space="preserve">
-    <value>'WEBSITE_AUTH_SIGNING_KEY' cannot be null or empty.</value>
-  </data>
   <data name="GetIdentities_MissingHeader" xml:space="preserve">
     <value>GetIdentity failed because the authentication header was missing or had an invalid value.</value>
+  </data>
+  <data name="GetIdentity_ClaimsMustHaveIssuer" xml:space="preserve">
+    <value>The IPrincipal's Claims must contain an 'iss' Claim.</value>
+  </data>
+  <data name="GetIdentity_HttpError" xml:space="preserve">
+    <value>There was an unexpected error retrieving the credentials: '{0}'</value>
+  </data>
+  <data name="ParameterMustBeOfType" xml:space="preserve">
+    <value>The '{0}' parameter must be of type '{1}'.</value>
   </data>
 </root>

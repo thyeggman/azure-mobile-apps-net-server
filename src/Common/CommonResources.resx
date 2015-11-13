@@ -132,4 +132,7 @@
   <data name="HttpHeaderToken_Invalid" xml:space="preserve">
     <value>The format of value '{0}' is invalid. The character '{1}' is not a valid HTTP header token character.</value>
   </data>
+  <data name="Property_CannotBeNull" xml:space="preserve">
+    <value>'{0}' cannot be null.</value>
+  </data>
 </root>

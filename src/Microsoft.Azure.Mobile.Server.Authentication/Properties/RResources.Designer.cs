@@ -88,20 +88,38 @@ namespace Microsoft.Azure.Mobile.Server.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;WEBSITE_AUTH_SIGNING_KEY&apos; cannot be null or empty..
-        /// </summary>
-        internal static string Authentication_MissingSigningKey {
-            get {
-                return ResourceManager.GetString("Authentication_MissingSigningKey", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to GetIdentity failed because the authentication header was missing or had an invalid value..
         /// </summary>
         internal static string GetIdentities_MissingHeader {
             get {
                 return ResourceManager.GetString("GetIdentities_MissingHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The IPrincipal&apos;s Claims must contain an &apos;iss&apos; Claim..
+        /// </summary>
+        internal static string GetIdentity_ClaimsMustHaveIssuer {
+            get {
+                return ResourceManager.GetString("GetIdentity_ClaimsMustHaveIssuer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an unexpected error retrieving the credentials: &apos;{0}&apos;.
+        /// </summary>
+        internal static string GetIdentity_HttpError {
+            get {
+                return ResourceManager.GetString("GetIdentity_HttpError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;{0}&apos; parameter must be of type &apos;{1}&apos;..
+        /// </summary>
+        internal static string ParameterMustBeOfType {
+            get {
+                return ResourceManager.GetString("ParameterMustBeOfType", resourceCulture);
             }
         }
     }

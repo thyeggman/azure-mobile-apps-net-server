@@ -38,13 +38,10 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
             MockHttpMessageHandler handlerMock = new MockHttpMessageHandler(CreateResponse(tokenEntry));
 
             var webappUri = "http://test";
-            Mock<AppServiceHttpClient> appServiceClientMock = new Mock<AppServiceHttpClient>(new Uri(webappUri));
-            appServiceClientMock.CallBase = true;
-            appServiceClientMock.Setup(c => c.CreateHttpClient())
-                .Returns(new HttpClient(handlerMock));
+            AppServiceHttpClient appServiceClientMock = new AppServiceHttpClient(new HttpClient(handlerMock));
 
             // Act
-            TokenEntry result = await appServiceClientMock.Object.GetRawTokenAsync(accessToken, "Facebook");
+            TokenEntry result = await appServiceClientMock.GetRawTokenAsync(new Uri(webappUri), accessToken, "Facebook");
 
             // Assert
             Assert.Equal(accessToken, result.AccessToken);
@@ -62,15 +59,12 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
             MockHttpMessageHandler handlerMock = new MockHttpMessageHandler(CreateEmptyResponse());
 
             var webappUri = "http://test";
-            Mock<AppServiceHttpClient> appServiceClientMock = new Mock<AppServiceHttpClient>(new Uri(webappUri));
-            appServiceClientMock.CallBase = true;
-            appServiceClientMock.Setup(c => c.CreateHttpClient())
-                .Returns(new HttpClient(handlerMock));
+            AppServiceHttpClient appServiceClientMock = new AppServiceHttpClient(new HttpClient(handlerMock));
 
             // Act
-            TokenEntry result = await appServiceClientMock.Object.GetRawTokenAsync(accessToken, "Facebook");
+            TokenEntry result = await appServiceClientMock.GetRawTokenAsync(new Uri(webappUri), accessToken, "Facebook");
 
-            // Assert            
+            // Assert
             Assert.Null(result);
             Assert.Equal(webappUri + "/.auth/me?provider=facebook", handlerMock.ActualRequest.RequestUri.ToString());
             Assert.Equal(accessToken, handlerMock.ActualRequest.Headers.GetValues("x-zumo-auth").Single());
@@ -90,13 +84,10 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
             MockHttpMessageHandler handlerMock = new MockHttpMessageHandler(response);
             var gatewayUri = "http://test";
 
-            Mock<AppServiceHttpClient> appServiceClientMock = new Mock<AppServiceHttpClient>(new Uri(gatewayUri));
-            appServiceClientMock.CallBase = true;
-            appServiceClientMock.Setup(c => c.CreateHttpClient())
-                .Returns(new HttpClient(handlerMock));
+            AppServiceHttpClient appServiceClientMock = new AppServiceHttpClient(new HttpClient(handlerMock));
 
             // Act
-            var ex = await Assert.ThrowsAsync<HttpResponseException>(() => appServiceClientMock.Object.GetRawTokenAsync("123456", "Facebook"));
+            var ex = await Assert.ThrowsAsync<HttpResponseException>(() => appServiceClientMock.GetRawTokenAsync(new Uri(gatewayUri), "123456", "Facebook"));
 
             // Assert
             Assert.NotNull(ex);
@@ -109,10 +100,10 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
         [InlineData(null, null, "authToken")]
         public async Task GetRawTokenAsync_Throws_IfParametersAreNull(string authToken, string tokenProviderName, string parameterThatThrows)
         {
-            AppServiceHttpClient appServiceClient = new AppServiceHttpClient(new Uri("http://testuri"));
+            AppServiceHttpClient appServiceClient = new AppServiceHttpClient(new HttpClient());
 
             // Act
-            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => appServiceClient.GetRawTokenAsync(authToken, tokenProviderName));
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => appServiceClient.GetRawTokenAsync(new Uri("http://testuri"), authToken, tokenProviderName));
 
             // Assert
             Assert.NotNull(ex);
@@ -136,24 +127,6 @@ namespace Microsoft.Azure.Mobile.Server.Authentication.Test.AppService
             response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
             return response;
-        }
-
-        public class MockHttpMessageHandler : HttpMessageHandler
-        {
-            private HttpResponseMessage response;
-
-            public MockHttpMessageHandler(HttpResponseMessage response)
-            {
-                this.response = response;
-            }
-
-            public HttpRequestMessage ActualRequest { get; set; }
-
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                this.ActualRequest = request;
-                return Task.FromResult(this.response);
-            }
         }
     }
 }

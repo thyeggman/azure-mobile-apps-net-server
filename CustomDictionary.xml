@@ -18,6 +18,7 @@
       <Word>guid</Word>
       <Word>hashset</Word>
       <Word>infos</Word>
+      <Word>iss</Word>
       <Word>jwt</Word>
       <Word>loc</Word>
       <Word>mpns</Word>
@@ -38,7 +39,7 @@
       <Word>quickstart</Word>
       <Word>uid</Word>
     </Recognized>
-    <Deprecated/>
+    <Deprecated />
     <Compound>
       <Term CompoundAlternate="CheckIns">checkins</Term>
       <Term CompoundAlternate="FxCop">fxcop</Term>
