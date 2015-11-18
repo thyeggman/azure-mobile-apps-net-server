@@ -3,6 +3,26 @@ This is the changelog for the Azure Mobile **Apps** .NET server SDK, which are i
 Note: this applies only to the new Server SDK that's designed for App Service, **not Mobile Services**. Mobile Apps is only available in the new Azure portal.
 
 _____________
+**Release 0.3.36 (November 2015 | RC)**
+[https://github.com/Azure/azure-mobile-apps-net-server/releases/tag/0.3.36.0](https://github.com/Azure/azure-mobile-apps-net-server/releases/tag/0.3.36.0)
+
+For details, see this blog post: [Azure Mobile Apps November 2015 Update](http://go.microsoft.com/fwlink/?LinkId=703717)
+
+- (New!) Added Login package for creating tokens that can be authenticated by App Service Authentication.
+
+- (Breaking change) System properties no longer start with double underscores (__)
+
+- (Breaking change) ZUMO-API-VERSION header or query string parameter with value of 2.0.0 is now required
+
+- (Breaking change) Removed `MobileAppUser`. Authenticated users are now of type `ClaimsPrincipal`.
+
+- (Breaking change) `AppServiceAuthenticationMiddleware` now mimics App Service Authentication; this middleware should now only be used during local debugging.
+
+- (Breaking change) Removed `SigningKey` from `MobileAppSettingsDictionary`.
+
+- (Breaking change) `GetIdentityAsync<>()` has been removed in favor of `GetAppServiceIdentityAsync<>()`, an extension method on `IPrincipal`. The new method targets App Service Authentication rather than the Gateway.
+
+- (Breaking change) Any classes starting with `MobileAppAuth` have been renamed `AppServiceAuth`.
 
 **Release 0.2.575 (September 2015)**
 
