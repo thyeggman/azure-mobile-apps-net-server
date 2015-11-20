@@ -11,20 +11,20 @@ using System.Web.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.Azure.Mobile.Server.Authentication 
+namespace Microsoft.Azure.Mobile.Server.Authentication
 {
     /// <summary>
-    /// Provides a default implementation of the <see cref="IMobileAppTokenHandler"/> interface.
+    /// Provides a default implementation of the <see cref="IAppServiceTokenHandler"/> interface.
     /// </summary>
-    public class MobileAppTokenHandler : IMobileAppTokenHandler
+    public class AppServiceTokenHandler : IAppServiceTokenHandler
     {
         private readonly JsonSerializerSettings tokenSerializerSettings = GetTokenSerializerSettings();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MobileAppTokenHandler"/> class.
+        /// Initializes a new instance of the <see cref="AppServiceTokenHandler"/> class.
         /// </summary>
         /// <param name="config">The <see cref="HttpConfiguration"/> for this instance.</param>
-        public MobileAppTokenHandler(HttpConfiguration config)
+        public AppServiceTokenHandler(HttpConfiguration config)
         {
             if (config == null)
             {

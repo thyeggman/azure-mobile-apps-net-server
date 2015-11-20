@@ -142,7 +142,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
                 ValidAudiences = new[] { TestWebsiteUrl },
                 ValidIssuers = new[] { TestWebsiteUrl },
                 SigningKey = SigningKey,
-                TokenHandler = config.GetMobileAppTokenHandler(),
+                TokenHandler = config.GetAppServiceTokenHandler(),
                 AuthenticationMode = mode
             };
         }
@@ -173,7 +173,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
             {
                 new Claim("sub", "Facebook:1234")
             };
-            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, SigningKey, TestWebsiteUrl, TestWebsiteUrl, TimeSpan.FromDays(30));
+            JwtSecurityToken token = AppServiceLoginHandler.CreateToken(claims, SigningKey, TestWebsiteUrl, TestWebsiteUrl, TimeSpan.FromDays(30));
             return token;
         }
 

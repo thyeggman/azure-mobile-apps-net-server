@@ -75,7 +75,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>LoginResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="MobileAppLoginHandler.cs" />
+    <Compile Include="AppServiceLoginHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

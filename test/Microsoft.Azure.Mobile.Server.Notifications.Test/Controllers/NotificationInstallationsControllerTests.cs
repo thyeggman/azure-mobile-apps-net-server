@@ -615,12 +615,12 @@ namespace Microsoft.WindowsAzure.Mobile.Service
         {
             string signingKey = "6523e58bc0eec42c31b9635d5e0dfc23b6d119b73e633bf3a5284c79bb4a1ede"; // SHA256 hash of 'secret_key'
             HttpConfiguration config = new HttpConfiguration();
-            MobileAppTokenHandler handler = new MobileAppTokenHandler(config);
+            AppServiceTokenHandler handler = new AppServiceTokenHandler(config);
             string url = "http://localhost";
             Claim[] claims = new Claim[] { new Claim("sub", "my:userid") };
 
             // Create a token the same way as App Service Authentication
-            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, signingKey, url, url, TimeSpan.FromDays(10));
+            JwtSecurityToken token = AppServiceLoginHandler.CreateToken(claims, signingKey, url, url, TimeSpan.FromDays(10));
 
             // Validate that token and parse it into a ClaimsPrincipal the same way as App Service Authentication
             ClaimsPrincipal user = null;

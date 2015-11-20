@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
 
         public IEnumerable<string> ValidIssuers { get; set; }
 
-        public IMobileAppTokenHandler TokenHandler { get; set; }
+        public IAppServiceTokenHandler TokenHandler { get; set; }
 
         /// <summary>
         /// Gets or sets the application signing key.

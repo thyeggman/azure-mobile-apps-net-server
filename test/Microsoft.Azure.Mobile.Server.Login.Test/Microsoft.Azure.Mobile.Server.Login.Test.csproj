@@ -69,7 +69,7 @@
     <Compile Include="..\Common\CommonTestAssemblyInfo.cs">
       <Link>Properties\CommonTestAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="MobileAppLoginHandlerTests.cs" />
+    <Compile Include="AppServiceLoginHandlerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -58,7 +58,7 @@ namespace Local
                     SigningKey = ConfigurationManager.AppSettings["SigningKey"],
                     ValidAudiences = new[] { ConfigurationManager.AppSettings["ValidAudience"] },
                     ValidIssuers = new[] { ConfigurationManager.AppSettings["ValidIssuer"] },
-                    TokenHandler = config.GetMobileAppTokenHandler()
+                    TokenHandler = config.GetAppServiceTokenHandler()
                 });
             }
             app.UseWebApi(config);
