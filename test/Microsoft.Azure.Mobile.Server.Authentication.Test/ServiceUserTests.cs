@@ -30,15 +30,15 @@ namespace Microsoft.Azure.Mobile.Server.Security
         private const string TestLocalhostUrl = "http://localhost/";
         private const string TestSigningKey = "6523e58bc0eec42c31b9635d5e0dfc23b6d119b73e633bf3a5284c79bb4a1ede"; // SHA256 hash of 'secret_key'
         private FacebookCredentials facebookCredentials;
-        private Mock<MobileAppTokenHandler> tokenHandlerMock;
-        private IMobileAppTokenHandler tokenHandler;
+        private Mock<AppServiceTokenHandler> tokenHandlerMock;
+        private IAppServiceTokenHandler tokenHandler;
 
         public ServiceUserTests()
         {
             this.facebookCredentials = new FacebookCredentials() { UserId = "Facebook:FBUserId", AccessToken = "ABCDEF" };
 
             HttpConfiguration config = new HttpConfiguration();
-            this.tokenHandlerMock = new Mock<MobileAppTokenHandler>(config) { CallBase = true };
+            this.tokenHandlerMock = new Mock<AppServiceTokenHandler>(config) { CallBase = true };
             this.tokenHandler = this.tokenHandlerMock.Object;
         }
 
@@ -326,7 +326,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
                 new Claim("sub", this.facebookCredentials.UserId)
             };
 
-            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, TestSigningKey, TestLocalhostUrl, TestLocalhostUrl, TimeSpan.FromDays(10));
+            JwtSecurityToken token = AppServiceLoginHandler.CreateToken(claims, TestSigningKey, TestLocalhostUrl, TestLocalhostUrl, TimeSpan.FromDays(10));
 
             ClaimsPrincipal user = null;
             string[] validIssAud = new[] { TestLocalhostUrl };

@@ -1,6 +1,6 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System;
 using System.IdentityModel.Tokens;
@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.Azure.Mobile.Server.Login.Test
 {
-    public class MobileAppLoginHandlerTests
+    public class AppServiceLoginHandlerTests
     {
         private const string Audience = "https://audience";
         private const string Issuer = "https://issuer";
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Mobile.Server.Login.Test
                 new Claim("custom_claim_1", "CustomClaimValue1"),
                 new Claim("custom_claim_2", "CustomClaimValue2")
             };
-            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, SigningKey, Audience, Issuer, TimeSpan.FromDays(10));
+            JwtSecurityToken token = AppServiceLoginHandler.CreateToken(claims, SigningKey, Audience, Issuer, TimeSpan.FromDays(10));
 
             Assert.Equal(8, token.Claims.Count());
 
@@ -43,39 +43,39 @@ namespace Microsoft.Azure.Mobile.Server.Login.Test
         [Fact]
         public void CreateToken_Throws_IfNoSub()
         {
-            Claim[] claims = new Claim[] 
+            Claim[] claims = new Claim[]
             {
-                new Claim("uid", UserId) 
+                new Claim("uid", UserId)
             };
 
             ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
-                MobileAppLoginHandler.CreateToken(claims, SigningKey, Audience, Issuer, TimeSpan.FromDays(10)));
+                AppServiceLoginHandler.CreateToken(claims, SigningKey, Audience, Issuer, TimeSpan.FromDays(10)));
 
-            Assert.Equal("claims", ex.ParamName);            
+            Assert.Equal("claims", ex.ParamName);
         }
 
         [Fact]
         public void CreateToken_Throws_IfSecretNull()
         {
-            Claim[] claims = new Claim[] 
+            Claim[] claims = new Claim[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, UserId) 
+                new Claim(JwtRegisteredClaimNames.Sub, UserId)
             };
 
             ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
-                MobileAppLoginHandler.CreateToken(claims, null, Audience, Issuer, TimeSpan.FromDays(10)));
+                AppServiceLoginHandler.CreateToken(claims, null, Audience, Issuer, TimeSpan.FromDays(10)));
         }
 
         [Fact]
         public void CreateToken_Throws_IfClaimsNull()
         {
-            Claim[] claims = new Claim[] 
+            Claim[] claims = new Claim[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, UserId) 
+                new Claim(JwtRegisteredClaimNames.Sub, UserId)
             };
 
             ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
-                MobileAppLoginHandler.CreateToken(null, SigningKey, Audience, Issuer, TimeSpan.FromDays(10)));
+                AppServiceLoginHandler.CreateToken(null, SigningKey, Audience, Issuer, TimeSpan.FromDays(10)));
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.Mobile.Server.Login.Test
             };
 
             // Act
-            ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() => MobileAppLoginHandler.CreateToken(claims, SigningKey, Audience, Issuer, TimeSpan.FromDays(-10)));
+            ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() => AppServiceLoginHandler.CreateToken(claims, SigningKey, Audience, Issuer, TimeSpan.FromDays(-10)));
 
             // Assert
             Assert.Contains("Argument must be greater than or equal to 00:00:00.", ex.Message);
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.Mobile.Server.Login.Test
                 new Claim(JwtRegisteredClaimNames.Sub, UserId)
             };
 
-            JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, SigningKey, Audience, Issuer, null);
+            JwtSecurityToken token = AppServiceLoginHandler.CreateToken(claims, SigningKey, Audience, Issuer, null);
 
             // no exp claim
             Assert.Null(token.Payload.Exp);

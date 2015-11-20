@@ -257,7 +257,7 @@ namespace Microsoft.Azure.Mobile.Server
                     SigningKey = this.SigningKey,
                     ValidAudiences = this.ValidAudiences,
                     ValidIssuers = this.ValidIssuers,
-                    TokenHandler = config.GetMobileAppTokenHandler()
+                    TokenHandler = config.GetAppServiceTokenHandler()
                 };
             }
 
@@ -272,7 +272,7 @@ namespace Microsoft.Azure.Mobile.Server
                     new Claim("iss", issuer),
                 };
 
-                JwtSecurityToken token = MobileAppLoginHandler.CreateToken(claims, secretKey, audience, issuer, TimeSpan.FromDays(30));
+                JwtSecurityToken token = AppServiceLoginHandler.CreateToken(claims, secretKey, audience, issuer, TimeSpan.FromDays(30));
 
                 Assert.Equal(8, token.Claims.Count());
 

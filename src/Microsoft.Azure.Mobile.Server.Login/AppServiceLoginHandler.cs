@@ -1,6 +1,6 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ using Microsoft.Azure.Mobile.Server.Properties;
 
 namespace Microsoft.Azure.Mobile.Server.Login
 {
-    public static class MobileAppLoginHandler
+    public static class AppServiceLoginHandler
     {
         public static JwtSecurityToken CreateToken(IEnumerable<Claim> claims, string secretKey, string audience, string issuer, TimeSpan? lifetime)
         {

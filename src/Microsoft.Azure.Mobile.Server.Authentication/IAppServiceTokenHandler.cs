@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
     /// Provides an abstraction for handling security tokens. This abstraction can be used for validating security
     /// tokens and creating <see cref="ClaimsPrincipal"/> instances.
     /// </summary>
-    public interface IMobileAppTokenHandler
+    public interface IAppServiceTokenHandler
     {
         /// <summary>
         /// Validates a string representation of a mobile service authentication token used to authenticate a user request.

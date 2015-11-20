@@ -117,7 +117,7 @@
     <Compile Include="Extensions\AuthenticationHttpConfigurationExtensions.cs" />
     <Compile Include="Credentials\FacebookCredentials.cs" />
     <Compile Include="Credentials\GoogleCredentials.cs" />
-    <Compile Include="IMobileAppTokenHandler.cs" />
+    <Compile Include="IAppServiceTokenHandler.cs" />
     <Compile Include="Credentials\MicrosoftAccountCredentials.cs" />
     <Compile Include="Middleware\AppServiceAuthenticationHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -129,7 +129,7 @@
     </Compile>
     <Compile Include="Middleware\AppServiceAuthenticationMiddleware.cs" />
     <Compile Include="Middleware\AppServiceAuthenticationOptions.cs" />
-    <Compile Include="MobileAppTokenHandler.cs" />
+    <Compile Include="AppServiceTokenHandler.cs" />
     <Compile Include="Credentials\TwitterCredentials.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -16,24 +16,24 @@ namespace System.Web.Http
     {
         private const string ServiceTokenHandlerKey = "MS_ServiceTokenHandler";
 
-        public static IMobileAppTokenHandler GetMobileAppTokenHandler(this HttpConfiguration config)
+        public static IAppServiceTokenHandler GetAppServiceTokenHandler(this HttpConfiguration config)
         {
             if (config == null)
             {
                 throw new ArgumentNullException("config");
             }
 
-            IMobileAppTokenHandler handler;
+            IAppServiceTokenHandler handler;
             if (!config.Properties.TryGetValue(ServiceTokenHandlerKey, out handler))
             {
-                handler = new MobileAppTokenHandler(config);
+                handler = new AppServiceTokenHandler(config);
                 config.Properties[ServiceTokenHandlerKey] = handler;
             }
 
             return handler;
         }
 
-        public static void SetMobileAppTokenHandler(this HttpConfiguration config, IMobileAppTokenHandler handler)
+        public static void SetAppServiceTokenHandler(this HttpConfiguration config, IAppServiceTokenHandler handler)
         {
             if (config == null)
             {

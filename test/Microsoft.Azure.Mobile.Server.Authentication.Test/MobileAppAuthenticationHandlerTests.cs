@@ -222,7 +222,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
                 claims.Add(new Claim("my_custom_claim", "MyClaimValue"));
             }
 
-            return MobileAppLoginHandler.CreateToken(claims, signingKey, audience, issuer, TimeSpan.FromDays(10));
+            return AppServiceLoginHandler.CreateToken(claims, signingKey, audience, issuer, TimeSpan.FromDays(10));
         }
 
         private static IOwinRequest CreateAuthRequest(Uri webappUri, JwtSecurityToken token = null)
@@ -268,7 +268,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
                 ValidAudiences = new[] { TestWebsiteUrl },
                 ValidIssuers = new[] { TestWebsiteUrl },
                 SigningKey = SigningKeyAlpha,
-                TokenHandler = config.GetMobileAppTokenHandler()
+                TokenHandler = config.GetAppServiceTokenHandler()
             };
 
             return options;

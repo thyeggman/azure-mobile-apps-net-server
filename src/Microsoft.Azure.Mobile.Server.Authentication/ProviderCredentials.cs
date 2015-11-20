@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
         public string Provider { get; set; }
 
         /// <summary>
-        /// Gets or sets the provider id for the user. The value can be created and parsed using the methods provided by <see cref="IMobileAppTokenHandler"/>.
+        /// Gets or sets the provider id for the user. The value can be created and parsed using the methods provided by <see cref="IAppServiceTokenHandler"/>.
         /// </summary>
         [JsonIgnore]
         public string UserId { get; set; }
