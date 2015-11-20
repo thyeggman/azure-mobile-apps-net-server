@@ -41,7 +41,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <CodeAnalysisRuleSet>..\Src.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>..\..\bin\Release\Microsoft.Azure.Mobile.Server.xml</DocumentationFile>
-    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -89,9 +88,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CommonResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="..\Common\Constants.cs">
-      <Link>Common\Constants.cs</Link>
     </Compile>
     <Compile Include="..\Common\DictionaryExtensions.cs">
       <Link>Common\DictionaryExtensions.cs</Link>

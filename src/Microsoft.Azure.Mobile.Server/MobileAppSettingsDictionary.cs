@@ -12,13 +12,13 @@ using Microsoft.Azure.Mobile.Server.Properties;
 namespace Microsoft.Azure.Mobile.Server
 {
     /// <summary>
-    /// Contains settings for a service such as the name, authentication provider information, connection strings, etc.
-    /// The <see cref="MobileAppSettingsDictionary"/> provides typed properties for known settings such as <see cref="M:Name"/>
-    /// and <see cref="M:Key"/> as well as <see cref="IDictionary{TKey,TValue}"/> access for all other settings.
+    /// Contains settings for a service such as the connection strings, host name, subscription ID, etc.
+    /// The <see cref="MobileAppSettingsDictionary"/> provides typed properties for known settings such as <see cref="M:HostName"/>
+    /// and <see cref="M:SubscriptionId"/> as well as <see cref="IDictionary{TKey,TValue}"/> access for all other settings.
     /// </summary>
     /// <remarks>Any property values set on an instance will only stay in effect for the lifetime of the current <see cref="AppDomain"/>.
     /// To change the settings in a persistent manner, please update them using a mechanism provided by the service host.</remarks>
-    [SuppressMessage("Microsoft.Usage", "CA2240:ImplementISerializableCorrectly", Justification = "Expiration is not intended for serialization")]
+    [SuppressMessage("Microsoft.Usage", "CA2240:ImplementISerializableCorrectly", Justification = "Not intended for serialization")]
     [Serializable]
     public class MobileAppSettingsDictionary : Dictionary<string, string>
     {
@@ -102,6 +102,10 @@ namespace Microsoft.Azure.Mobile.Server
             }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether ZUMO-API-VERSION header checks are skipped for all
+        /// calls to MobileApp controllers.
+        /// </summary>
         public virtual bool SkipVersionCheck
         {
             get

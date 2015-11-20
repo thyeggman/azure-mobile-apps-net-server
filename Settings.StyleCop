@@ -3,6 +3,7 @@
     <StringProperty Name="MergeSettingsFiles">NoMerge</StringProperty>
     <CollectionProperty Name="RecognizedWords">
       <Value>aad</Value>
+      <Value>api</Value>
       <Value>apns</Value>
       <Value>auth</Value>
       <Value>Autofac</Value>

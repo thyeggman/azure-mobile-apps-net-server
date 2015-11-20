@@ -1,6 +1,6 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System;
 using System.Net.Http;
@@ -9,9 +9,9 @@ using System.Net.Http.Headers;
 namespace Microsoft.Azure.Mobile.Server.Cache
 {
     /// <summary>
-    /// Default implementation of <see cref="ICachePolicyProvider"/> with a set of possible default HTTP caching policies. 
+    /// Default implementation of <see cref="ICachePolicyProvider"/> with a set of possible default HTTP caching policies.
     /// If no HTTP caching headers have been set on a response then this abstraction is called allowing for a default
-    /// set of HTTP caching headers to be applied. 
+    /// set of HTTP caching headers to be applied.
     /// </summary>
     public class CachePolicyProvider : ICachePolicyProvider
     {
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.Mobile.Server.Cache
         /// <summary>
         /// Initializes a new instance of the <see cref="CachePolicyProvider"/> class with the given <paramref name="policy"/>.
         /// </summary>
-        /// <param name="policy">The <see cref="CachePolicy"/> to use if no HTTP caching response headers have been set on 
+        /// <param name="policy">The <see cref="CachePolicy"/> to use if no HTTP caching response headers have been set on
         /// an <see cref="HttpResponseMessage"/>.</param>
         public CachePolicyProvider(CachePolicy policy)
         {
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.Mobile.Server.Cache
         }
 
         /// <summary>
-        /// Gets the <see cref="CachePolicy"/> being applied if no HTTP caching response headers have been set on 
+        /// Gets the <see cref="CachePolicy"/> being applied if no HTTP caching response headers have been set on
         /// an <see cref="HttpResponseMessage"/>.
         /// </summary>
         public CachePolicy Policy { get; private set; }
@@ -121,7 +121,7 @@ namespace Microsoft.Azure.Mobile.Server.Cache
         }
 
         /// <summary>
-        /// Applies the <see cref="CachePolicy"/> <c>MaxAge</c> value to the given <paramref name="response"/>. 
+        /// Applies the <see cref="CachePolicy"/> <c>MaxAge</c> value to the given <paramref name="response"/>.
         /// </summary>
         /// <param name="response">The current <see cref="HttpResponseMessage"/>.</param>
         protected virtual void SetMaxAge(HttpResponseMessage response)
@@ -149,7 +149,7 @@ namespace Microsoft.Azure.Mobile.Server.Cache
         /// For backwards compatibility with HTTP/1.0 caches, set the Expires header and Pragma headers
         /// to force no cache.
         /// </summary>
-        /// <param name="response"></param>
+        /// <param name="response">The current <see cref="HttpResponseMessage"/>.</param>
         internal static void ForceNoCache(HttpResponseMessage response)
         {
             response.Headers.Pragma.Add(new NameValueHeaderValue("no-cache"));

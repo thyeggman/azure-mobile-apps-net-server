@@ -1,6 +1,6 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -15,6 +15,9 @@ using System.Web.Http;
 
 namespace Microsoft.Azure.Mobile.Server.Content
 {
+    /// <summary>
+    /// Generates an HTML-formatted <see cref="System.Web.Http.IHttpActionResult"/> from an embedded resource.
+    /// </summary>
     public class StaticHtmlActionResult : IHttpActionResult
     {
         private const string HtmlMediaType = "text/html";
@@ -23,7 +26,7 @@ namespace Microsoft.Azure.Mobile.Server.Content
         private Assembly assembly;
 
         /// <summary>
-        /// Gets an embedded resource string from the calling assembly and returns it as Html.
+        /// Gets an embedded resource string from the calling assembly and returns it as HTML.
         /// Optionally uses <see cref="string.Format(string, object[])"/> to replace values in the resource.
         /// </summary>
         /// <param name="resourceName">The resource name to return as Html.</param>
