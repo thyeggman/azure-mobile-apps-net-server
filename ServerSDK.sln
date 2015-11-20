@@ -53,6 +53,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.Mobile.Serv
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.Mobile.Server.Login.Test", "test\Microsoft.Azure.Mobile.Server.Login.Test\Microsoft.Azure.Mobile.Server.Login.Test.csproj", "{9271075D-1580-43EE-840E-11F156C7EEF9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "e2etest", "e2etest", "{1E947539-7C0F-4E90-951B-343E1E07995A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZumoE2EServerApp", "e2etest\ZumoE2EServerApp.csproj", "{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -147,6 +151,10 @@ Global
 		{9271075D-1580-43EE-840E-11F156C7EEF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9271075D-1580-43EE-840E-11F156C7EEF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9271075D-1580-43EE-840E-11F156C7EEF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -174,5 +182,6 @@ Global
 		{E5C1C151-13F1-4050-A4E8-642F76412973} = {2ED08A97-4DE7-4844-997C-D7EC334639C5}
 		{4F8392EE-59FF-41A0-8E69-568352FA463F} = {BBB08829-B162-40C7-A33A-AEBE20307743}
 		{9271075D-1580-43EE-840E-11F156C7EEF9} = {2ED08A97-4DE7-4844-997C-D7EC334639C5}
+		{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A} = {1E947539-7C0F-4E90-951B-343E1E07995A}
 	EndGlobalSection
 EndGlobal

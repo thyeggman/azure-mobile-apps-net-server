@@ -17,12 +17,12 @@ namespace ZumoE2EServerApp.Controllers
     [MobileAppController]
     public class JwtTokenGeneratorController : ApiController
     {
-        public IMobileAppTokenHandler handler { get; set; }
+        public IAppServiceTokenHandler handler { get; set; }
 
         protected override void Initialize(HttpControllerContext controllerContext)
         {
             base.Initialize(controllerContext);
-            this.handler = controllerContext.Configuration.GetMobileAppTokenHandler();
+            this.handler = controllerContext.Configuration.GetAppServiceTokenHandler();
         }
 
         public LoginUser GetDummyUserToken()
@@ -34,7 +34,7 @@ namespace ZumoE2EServerApp.Controllers
 
             string host = this.Request.RequestUri.GetLeftPart(UriPartial.Authority) + "/";
 
-            var token = MobileAppLoginHandler.CreateToken(claims, GetSigningKey(), host, host, TimeSpan.FromDays(30));
+            var token = AppServiceLoginHandler.CreateToken(claims, GetSigningKey(), host, host, TimeSpan.FromDays(30));
 
             return new LoginUser()
             {
