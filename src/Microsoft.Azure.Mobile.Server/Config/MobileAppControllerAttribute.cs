@@ -22,6 +22,10 @@ using Newtonsoft.Json.Converters;
 
 namespace Microsoft.Azure.Mobile.Server.Config
 {
+    /// <summary>
+    /// Specifies that this controller is for use by an Azure Mobile App client. Specific settings
+    /// are applied to ensure the controller interacts correctly with the client.
+    /// </summary>
     [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes", Justification = "We need to derive from this and override Initialize")]
     [AttributeUsage(AttributeTargets.Class)]
     public class MobileAppControllerAttribute : ActionFilterAttribute, IControllerConfiguration
@@ -29,8 +33,10 @@ namespace Microsoft.Azure.Mobile.Server.Config
         internal const string VersionHeaderName = "x-zumo-server-version";
         internal const string VersionHeaderValuePrefix = "net-";
         internal const string ApiVersionName = "ZUMO-API-VERSION";
+
         // Eventually we may need to capture & compare: @"(\d)[.](\d)[.](\d) instead
         internal const string ApiVersionRegex = @"^2[.]0[.]\d+$";
+
         internal const string ForwardLinkURL = "http://go.microsoft.com/fwlink/?LinkId=690568#2.0.0";
 
         /// <inheritdoc />
@@ -66,6 +72,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
             controllerSettings.Formatters.Insert(0, jsonFormatter);
         }
 
+        /// <inheritdoc />
         public override void OnActionExecuting(HttpActionContext actionContext)
         {
             if (actionContext == null)
@@ -111,6 +118,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
             base.OnActionExecuting(actionContext);
         }
 
+        /// <inheritdoc />
         public override void OnActionExecuted(HttpActionExecutedContext actionExecutedContext)
         {
             if (actionExecutedContext == null)

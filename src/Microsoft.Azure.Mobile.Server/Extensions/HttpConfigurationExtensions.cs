@@ -17,90 +17,15 @@ namespace System.Web.Http
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class HttpConfigurationExtensions
     {
-        private const string AllowedMediaTypesKey = "MS_AllowedMediaTypes";
-        private const string ConfigOptionsKey = "MS_ServiceConfigOptions";
         private const string MobileAppOptionsKey = "MS_MobileAppOptions";
-        private const string IsSingletonKey = "MS_IsSingleton";
         private const string MobileAppSettingsProviderKey = "MS_MobileAppSettingsProvider";
         private const string CachePolicyProviderKey = "MS_CachePolicyProvider";
 
         /// <summary>
-        /// Gets the set of allowed media types to be served by the ContentController./>.
+        /// Gets the <see cref="Microsoft.Azure.Mobile.Server.Config.MobileAppConfiguration"/> registered with the current <see cref="System.Web.Http.HttpConfiguration" />.
         /// </summary>
-        /// <param name="config">The current <see cref="HttpConfiguration"/>.</param>
-        /// <returns>The set of allowed media types.</returns>
-        public static ISet<string> GetAllowedMediaTypes(this HttpConfiguration config)
-        {
-            if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
-
-            ISet<string> allowedMediaTypes;
-            if (config.Properties.TryGetValue(AllowedMediaTypesKey, out allowedMediaTypes))
-            {
-                return allowedMediaTypes;
-            }
-
-            HashSet<string> mediaTypes = new HashSet<string>();
-            config.Properties[AllowedMediaTypesKey] = mediaTypes;
-            return mediaTypes;
-        }
-
-        /// <summary>
-        /// Sets the set of allowed media types to be served by the ContentController"/>.
-        /// </summary>
-        /// <param name="config">The current <see cref="HttpConfiguration"/>.</param>
-        /// <param name="allowedMediaTypes">The set of allowed media types.</param>
-        public static void SetAllowedMediaTypes(this HttpConfiguration config, ISet<string> allowedMediaTypes)
-        {
-            if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
-
-            config.Properties[AllowedMediaTypesKey] = allowedMediaTypes;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the service is guaranteed to run as a singleton service, i.e. only using one instance, or
-        /// whether it is running in an environment with potentially multiple instances.
-        /// </summary>
-        /// <param name="config">The current <see cref="HttpConfiguration"/>.</param>
-        /// <returns><c>true</c> is this service runs as a singleton instance; false if it potentially can run as multiple instances.</returns>
-        public static bool GetIsSingletonInstance(this HttpConfiguration config)
-        {
-            if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
-
-            bool isSingleton;
-            if (!config.Properties.TryGetValue(IsSingletonKey, out isSingleton))
-            {
-                isSingleton = true;
-                config.Properties[IsSingletonKey] = isSingleton;
-            }
-
-            return isSingleton;
-        }
-
-        /// <summary>
-        /// Sets a value indicating whether the service is guaranteed to run as a singleton service, i.e. only using one instance, or
-        /// whether it is running in an environment with potentially multiple instances.
-        /// </summary>
-        /// <param name="config">The current <see cref="HttpConfiguration"/>.</param>
-        /// <param name="isSingleton">The value indicating whether the service is guaranteed to run as a single instance or not.</param>
-        public static void SetIsSingletonInstance(this HttpConfiguration config, bool isSingleton)
-        {
-            if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
-
-            config.Properties[IsSingletonKey] = isSingleton;
-        }
-
+        /// <param name="config">The current <see cref="System.Web.Http.HttpConfiguration"/>.</param>
+        /// <returns>The registered instance.</returns>
         public static MobileAppConfiguration GetMobileAppConfiguration(this HttpConfiguration config)
         {
             if (config == null)
@@ -108,11 +33,14 @@ namespace System.Web.Http
                 throw new ArgumentNullException("config");
             }
 
-            MobileAppConfiguration options;
-            config.Properties.TryGetValue(MobileAppOptionsKey, out options);
-            return options;
+            return config.Properties.GetValueOrDefault<MobileAppConfiguration>(MobileAppOptionsKey);
         }
 
+        /// <summary>
+        /// Registers a <see cref="Microsoft.Azure.Mobile.Server.Config.MobileAppConfiguration"/> with the current <see cref="System.Web.Http.HttpConfiguration" />.
+        /// </summary>
+        /// <param name="config">The current <see cref="System.Web.Http.HttpConfiguration"/>.</param>
+        /// <param name="options">The instance to register.</param>
         public static void SetMobileAppConfiguration(this HttpConfiguration config, MobileAppConfiguration options)
         {
             if (config == null)
@@ -123,6 +51,11 @@ namespace System.Web.Http
             config.Properties[MobileAppOptionsKey] = options;
         }
 
+        /// <summary>
+        /// Gets the <see cref="Microsoft.Azure.Mobile.Server.Config.IMobileAppSettingsProvider"/> registered with the current <see cref="System.Web.Http.HttpConfiguration" />.
+        /// </summary>
+        /// <param name="config">The current <see cref="System.Web.Http.HttpConfiguration"/>.</param>
+        /// <returns>The registered instance.</returns>
         public static IMobileAppSettingsProvider GetMobileAppSettingsProvider(this HttpConfiguration config)
         {
             if (config == null)
@@ -131,19 +64,20 @@ namespace System.Web.Http
             }
 
             IMobileAppSettingsProvider provider = null;
-
-            if (provider == null)
+            if (!config.Properties.TryGetValue(MobileAppSettingsProviderKey, out provider))
             {
-                if (!config.Properties.TryGetValue(MobileAppSettingsProviderKey, out provider))
-                {
-                    provider = new MobileAppSettingsProvider();
-                    config.Properties[MobileAppSettingsProviderKey] = provider;
-                }
+                provider = new MobileAppSettingsProvider();
+                config.Properties[MobileAppSettingsProviderKey] = provider;
             }
 
             return provider;
         }
 
+        /// <summary>
+        /// Registers an <see cref="Microsoft.Azure.Mobile.Server.Config.IMobileAppSettingsProvider"/> with the current <see cref="System.Web.Http.HttpConfiguration" />.
+        /// </summary>
+        /// <param name="config">The current <see cref="System.Web.Http.HttpConfiguration"/>.</param>
+        /// <param name="provider">The instance to register.</param>
         public static void SetMobileAppSettingsProvider(this HttpConfiguration config, IMobileAppSettingsProvider provider)
         {
             if (config == null)
@@ -154,6 +88,11 @@ namespace System.Web.Http
             config.Properties[MobileAppSettingsProviderKey] = provider;
         }
 
+        /// <summary>
+        /// Gets the <see cref="Microsoft.Azure.Mobile.Server.Cache.ICachePolicyProvider"/> registered with the current <see cref="System.Web.Http.HttpConfiguration" />.
+        /// </summary>
+        /// <param name="config">The current <see cref="System.Web.Http.HttpConfiguration"/>.</param>
+        /// <returns>The registered instance.</returns>
         public static ICachePolicyProvider GetCachePolicyProvider(this HttpConfiguration config)
         {
             if (config == null)
@@ -161,10 +100,21 @@ namespace System.Web.Http
                 throw new ArgumentNullException("config");
             }
 
-            ICachePolicyProvider provider = config.Properties.GetValueOrDefault<ICachePolicyProvider>(CachePolicyProviderKey);
+            ICachePolicyProvider provider = null;
+            if (!config.Properties.TryGetValue(CachePolicyProviderKey, out provider))
+            {
+                provider = new CachePolicyProvider();
+                config.Properties[CachePolicyProviderKey] = provider;
+            }
+
             return provider;
         }
 
+        /// <summary>
+        /// Registers an <see cref="Microsoft.Azure.Mobile.Server.Cache.ICachePolicyProvider"/> with the current <see cref="System.Web.Http.HttpConfiguration" />.
+        /// </summary>
+        /// <param name="config">The current <see cref="System.Web.Http.HttpConfiguration"/>.</param>
+        /// <param name="provider">The instance to register.</param>
         public static void SetCachePolicyProvider(this HttpConfiguration config, ICachePolicyProvider provider)
         {
             if (config == null)
@@ -175,7 +125,7 @@ namespace System.Web.Http
             config.Properties[CachePolicyProviderKey] = provider;
         }
 
-        public static HashSet<string> GetMobileAppControllerNames(this HttpConfiguration config)
+        internal static HashSet<string> GetMobileAppControllerNames(this HttpConfiguration config)
         {
             if (config == null)
             {

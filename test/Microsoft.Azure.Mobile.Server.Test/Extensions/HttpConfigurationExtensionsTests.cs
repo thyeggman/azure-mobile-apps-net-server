@@ -1,8 +1,8 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using Microsoft.Azure.Mobile.Server.Cache;
 using Microsoft.Azure.Mobile.Server.Config;
 using Xunit;
 
@@ -10,110 +10,134 @@ namespace System.Web.Http
 {
     public class HttpConfigurationExtensionsTests
     {
-        private HttpConfiguration config = new HttpConfiguration();
-
         [Fact]
-        public void GetAllowedMediaTypes_CreatesEmptyListIfNotSet()
+        public void GetMobileAppConfiguration_ReturnsNullByDefault()
         {
             // Arrange
-            ISet<string> result = this.config.GetAllowedMediaTypes();
-
-            // Assert
-            Assert.Empty(result);
-            Assert.Same(this.config.Properties["MS_AllowedMediaTypes"], result);
-        }
-
-        [Fact]
-        public void GetAllowedMediaTypes_ReturnsSameEmptyList()
-        {
-            // Arrange
-            ISet<string> result1 = this.config.GetAllowedMediaTypes();
-            ISet<string> result2 = this.config.GetAllowedMediaTypes();
-
-            // Assert
-            Assert.Same(result1, result2);
-        }
-
-        [Fact]
-        public void SetAndGetAllowedMediaTypes_Roundtrips()
-        {
-            // Arrange
-            HashSet<string> expected = new HashSet<string>();
+            HttpConfiguration config = new HttpConfiguration();
 
             // Act
-            this.config.SetAllowedMediaTypes(expected);
-            ISet<string> result = this.config.GetAllowedMediaTypes();
-
-            // Assert
-            Assert.Same(expected, result);
-        }
-
-        [Fact]
-        public void SetAllowedMediaTypes_AllowsNull()
-        {
-            // Act
-            this.config.SetAllowedMediaTypes(null);
-
-            // Assert
-            Assert.Null(this.config.Properties["MS_AllowedMediaTypes"]);
-        }
-
-        [Fact]
-        public void GetAllowedMediaTypes_ReturnsEmptyListAfterSetToNull()
-        {
-            // Arrange
-            this.config.SetAllowedMediaTypes(null);
-
-            // Act
-            ISet<string> result = this.config.GetAllowedMediaTypes();
-
-            // Assert
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public void GetIsSingletonInstance_Returns_TrueAsDefault()
-        {
-            // Act
-            bool actual = this.config.GetIsSingletonInstance();
-
-            // Assert
-            Assert.True(actual);
-        }
-
-        [Fact]
-        public void SetIsSingletonInstance_Roundtrips()
-        {
-            // Act
-            this.config.SetIsSingletonInstance(isSingleton: false);
-            bool actual = this.config.GetIsSingletonInstance();
-
-            // Assert
-            Assert.False(actual);
-        }
-
-        [Fact]
-        public void GetMobileAppConfigOptions_ReturnsNullByDefault()
-        {
-            // Act
-            MobileAppConfiguration actual = this.config.GetMobileAppConfiguration();
+            MobileAppConfiguration actual = config.GetMobileAppConfiguration();
 
             // Assert
             Assert.Null(actual);
         }
 
         [Fact]
-        public void SetMobileAppConfigOptions_Roundtrips()
+        public void SetMobileAppConfiguration_Roundtrips()
         {
             // Arrange
+            HttpConfiguration config = new HttpConfiguration();
             MobileAppConfiguration options = new MobileAppConfiguration();
 
             // Act
-            this.config.SetMobileAppConfiguration(options);
-            MobileAppConfiguration actual = this.config.GetMobileAppConfiguration();
+            config.SetMobileAppConfiguration(options);
+            MobileAppConfiguration actual = config.GetMobileAppConfiguration();
 
             // Assert
             Assert.Same(options, actual);
+        }
+
+        [Fact]
+        public void SetMobileAppConfiguration_ReturnsNull_IfSetToNull()
+        {
+            // Arrange
+            HttpConfiguration config = new HttpConfiguration();
+
+            // Act
+            config.SetMobileAppConfiguration(null);
+            MobileAppConfiguration actual = config.GetMobileAppConfiguration();
+
+            // Assert
+            Assert.Null(actual);
+        }
+
+        [Fact]
+        public void GetMobileAppSettingsProvider_ReturnsDefaultInstance()
+        {
+            // Arrange
+            HttpConfiguration config = new HttpConfiguration();
+
+            // Act
+            IMobileAppSettingsProvider actual = config.GetMobileAppSettingsProvider();
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.IsType<MobileAppSettingsProvider>(actual);
+        }
+
+        [Fact]
+        public void SetMobileAppSettingsProvider_Roundtrips()
+        {
+            // Arrange
+            MobileAppSettingsProvider provider = new MobileAppSettingsProvider();
+            HttpConfiguration config = new HttpConfiguration();
+
+            // Act
+            config.SetMobileAppSettingsProvider(provider);
+            IMobileAppSettingsProvider actual = config.GetMobileAppSettingsProvider();
+
+            // Assert
+            Assert.Same(provider, actual);
+        }
+
+        [Fact]
+        public void SetMobileAppSettingsProvider_ReturnsDefault_IfSetToNull()
+        {
+            // Arrange
+            HttpConfiguration config = new HttpConfiguration();
+
+            // Act
+            config.SetMobileAppSettingsProvider(null);
+            IMobileAppSettingsProvider actual = config.GetMobileAppSettingsProvider();
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.IsType<MobileAppSettingsProvider>(actual);
+        }
+
+        [Fact]
+        public void GetCachePolicyProvider_ReturnsDefaultInstance()
+        {
+            // Arrange
+            HttpConfiguration config = new HttpConfiguration();
+
+            // Act
+            ICachePolicyProvider actual = config.GetCachePolicyProvider();
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.IsType<CachePolicyProvider>(actual);
+        }
+
+        [Fact]
+        public void SetCachePolicyProvider_Roundtrips()
+        {
+            // Arrange
+            CachePolicyProvider provider = new CachePolicyProvider();
+            HttpConfiguration config = new HttpConfiguration();
+
+            // Act
+            config.SetCachePolicyProvider(provider);
+            ICachePolicyProvider actual = config.GetCachePolicyProvider();
+
+            // Assert
+            Assert.Same(provider, actual);
+        }
+
+        [Fact]
+        public void SetCachePolicyProvider_ReturnsDefault_IfSetToNull()
+        {
+            // Arrange
+            HttpConfiguration config = new HttpConfiguration();
+
+            // Act
+            config.SetCachePolicyProvider(null);
+            ICachePolicyProvider actual = config.GetCachePolicyProvider();
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.IsType<CachePolicyProvider>(actual);
         }
     }
 }

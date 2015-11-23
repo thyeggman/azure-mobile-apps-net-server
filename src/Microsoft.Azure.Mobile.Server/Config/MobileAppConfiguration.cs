@@ -5,13 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Web.Http;
-using Microsoft.Azure.Mobile.Server.Cache;
 using Microsoft.Azure.Mobile.Server.Properties;
 
 namespace Microsoft.Azure.Mobile.Server.Config
 {
+    /// <summary>
+    /// Configures the specified <see cref="System.Web.Http.HttpConfiguration" /> with settings used by
+    /// Azure Mobile Apps.
+    /// </summary>
     public class MobileAppConfiguration : AppConfiguration
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Microsoft.Azure.Mobile.Server.Config.MobileAppConfiguration" /> class.
+        /// </summary>
         public MobileAppConfiguration()
         {
             this.EnableApiControllers = false;
@@ -19,8 +25,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
 
         private bool EnableApiControllers { get; set; }
 
-        public IMobileAppSettingsProvider MobileAppSettingsProvider { get; set; }
-
+        /// <inheritdoc />
         public override void ApplyTo(HttpConfiguration config)
         {
             if (config.GetMobileAppConfiguration() != null)
@@ -29,8 +34,6 @@ namespace Microsoft.Azure.Mobile.Server.Config
             }
 
             config.SetMobileAppConfiguration(this);
-            config.SetMobileAppSettingsProvider(this.MobileAppSettingsProvider);
-            config.SetCachePolicyProvider(new CachePolicyProvider());
 
             base.ApplyTo(config);
 
@@ -40,6 +43,11 @@ namespace Microsoft.Azure.Mobile.Server.Config
             }
         }
 
+        /// <summary>
+        /// Maps all controllers with the <see cref="Microsoft.Azure.Mobile.Server.Config.MobileAppControllerAttribute"/> to the route
+        /// template "api/{controller}/{id}".
+        /// </summary>
+        /// <returns>The current <see cref="Microsoft.Azure.Mobile.Server.Config.MobileAppConfiguration"/>.</returns>
         public MobileAppConfiguration MapApiControllers()
         {
             this.EnableApiControllers = true;
