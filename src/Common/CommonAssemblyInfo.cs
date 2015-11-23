@@ -21,5 +21,5 @@ using System.Runtime.InteropServices;
 //  Only edit the first two parts of the versions below.
 //  The official build will automatically generate the last two parts.
 // ===========================================================================
-[assembly: AssemblyVersion("0.3.0.0")]
-[assembly: AssemblyFileVersion("0.3.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
