@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <TemplateDefinition Name="Microsoft Azure Mobile App" Order="2005">
     <UI>
-        <Template Name="Azure Mobile App (Preview)" BaseTemplateID="Microsoft.WAP.CSharp.MobileApp.v1.0" Order="3000">
+        <Template Name="Azure Mobile App" BaseTemplateID="Microsoft.WAP.CSharp.MobileApp.v1.0" Order="3000">
             <Icon>VBProject.ico</Icon>
             <PreviewImage>VBProject.ico</PreviewImage>
             <Summary>A project template for creating an ASP.NET Web API-based mobile backend for a Microsoft Azure Mobile App.</Summary>
