@@ -1,7 +1,10 @@
 ﻿Imports System
 Imports System.Collections.Generic
+Imports System.Configuration
 Imports System.Data.Entity
 Imports System.Web.Http
+Imports Microsoft.Azure.Mobile.Server
+Imports Microsoft.Azure.Mobile.Server.Authentication
 Imports Microsoft.Azure.Mobile.Server.Config
 Imports Owin
 
@@ -17,7 +20,19 @@ Partial Public Class Startup
 
         Database.SetInitializer(New $safeinitializerclassname$())
 
-        app.UseMobileAppAuthentication(config)
+        Dim settings As MobileAppSettingsDictionary = config.GetMobileAppSettingsProvider().GetMobileAppSettings()
+
+        If (String.IsNullOrEmpty(settings.HostName)) Then
+            ' This middleware is intended to be used locally for debugging. By default, HostName will
+            ' only have a value when running in an App Service application.
+            app.UseAppServiceAuthentication(New AppServiceAuthenticationOptions() With {
+                .SigningKey = ConfigurationManager.AppSettings("SigningKey"),
+                .ValidAudiences = {ConfigurationManager.AppSettings("ValidAudience")},
+                .ValidIssuers = {ConfigurationManager.AppSettings("ValidIssuer")},
+                .TokenHandler = config.GetAppServiceTokenHandler()
+            })
+        End If
+
         app.UseWebApi(config)
 
     End Sub

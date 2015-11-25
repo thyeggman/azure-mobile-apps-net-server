@@ -8,19 +8,16 @@ if(ControllerName.EndsWith(controllerSuffix)){
     controllerPrefix = ControllerName.Substring(0, ControllerName.LastIndexOf(controllerSuffix));
 }
 #>
-Imports System.Net
 Imports System.Web.Http
-Imports Microsoft.Azure.Mobile.Server
+Imports Microsoft.Azure.Mobile.Server.Config
 
+<MobileAppController()>
 Public Class <#= ControllerName #>
     Inherits ApiController
 
-    Public Property Services As ApiServices
-
     ' GET api/<#= controllerPrefix #>
     Public Function GetValues() As String
-        Services.Log.Info("Hello from custom controller!")
-        Return "Hello"
+        Return "Hello from custom controller!"
     End Function
      
 End Class
