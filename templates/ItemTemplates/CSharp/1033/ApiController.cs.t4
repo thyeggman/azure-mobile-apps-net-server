@@ -9,26 +9,18 @@ if(ControllerName.EndsWith(controllerSuffix)){
     controllerPrefix = ControllerName.Substring(0, ControllerName.LastIndexOf(controllerSuffix));
 }
 #>
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
-using Microsoft.Azure.Mobile.Server;
+using Microsoft.Azure.Mobile.Server.Config;
 
 namespace <#= Namespace #>
 {
+    [MobileAppController]
     public class <#= ControllerName #> : ApiController
     {
-        public ApiServices Services { get; set; }
-
         // GET api/<#= controllerPrefix #>
         public string Get()
         {
-            Services.Log.Info("Hello from custom controller!");
-            return "Hello";
+            return "Hello from custom controller!";
         }
-
     }
 }
