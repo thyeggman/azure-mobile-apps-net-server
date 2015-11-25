@@ -6,11 +6,11 @@ using System.Web.Http;
 using Microsoft.Azure.Mobile.Server;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Config;
-using supporttestService.DataObjects;
-using supporttestService.Models;
+using $safeprojectname$.DataObjects;
+using $safeprojectname$.Models;
 using Owin;
 
-namespace supporttestService
+namespace $safeprojectname$
 {
     public partial class Startup
     {
@@ -23,7 +23,7 @@ namespace supporttestService
                 .ApplyTo(config);
 
             // Use Entity Framework Code First to create database tables based on your DbContext
-            Database.SetInitializer(new MobileServiceInitializer());
+            Database.SetInitializer(new $safeinitializerclassname$());
 
             MobileAppSettingsDictionary settings = config.GetMobileAppSettingsProvider().GetMobileAppSettings();
             
@@ -44,14 +44,14 @@ namespace supporttestService
         }
     }
 
-    public class supporttestInitializer : CreateDatabaseIfNotExists<supporttestContext>
+    public class $safeinitializerclassname$ : CreateDatabaseIfNotExists<$safecontextclassname$>
     {
-        protected override void Seed(supporttestContext context)
+        protected override void Seed($safecontextclassname$ context)
         {
             List<TodoItem> todoItems = new List<TodoItem>
             {
                 new TodoItem { Id = Guid.NewGuid().ToString(), Text = "First item", Complete = false },
-                new TodoItem { Id = Guid.NewGuid().ToString(), Text = "Second item", Complete = false },
+                new TodoItem { Id = Guid.NewGuid().ToString(), Text = "Second item", Complete = false }
             };
 
             foreach (TodoItem todoItem in todoItems)
