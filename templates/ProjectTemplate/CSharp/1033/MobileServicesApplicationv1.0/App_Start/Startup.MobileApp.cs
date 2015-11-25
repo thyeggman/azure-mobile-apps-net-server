@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Web.Http;
+using Microsoft.Azure.Mobile.Server.Authentication;
 using Microsoft.Azure.Mobile.Server.Config;
 using Owin;
 using $safeprojectname$.DataObjects;
@@ -21,7 +22,9 @@ namespace $safeprojectname$
             
             Database.SetInitializer(new $safeinitializerclassname$());
 
-            app.UseMobileAppAuthentication(config);
+            //AppServiceAuthenticationOptions options = new AppServiceAuthenticationOptions();
+            //app.UseAppServiceAuthentication(options);
+            
             app.UseWebApi(config);
         }
     }

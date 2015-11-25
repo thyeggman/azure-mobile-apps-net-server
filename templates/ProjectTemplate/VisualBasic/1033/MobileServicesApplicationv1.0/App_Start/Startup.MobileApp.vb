@@ -2,6 +2,7 @@
 Imports System.Collections.Generic
 Imports System.Data.Entity
 Imports System.Web.Http
+Imports Microsoft.Azure.Mobile.Server.Authentication
 Imports Microsoft.Azure.Mobile.Server.Config
 Imports Owin
 
@@ -17,7 +18,9 @@ Partial Public Class Startup
 
         Database.SetInitializer(New $safeinitializerclassname$())
 
-        app.UseMobileAppAuthentication(config)
+        'Dim options As New AppServiceAuthenticationOptions()
+        'app.UseAppServiceAuthentication(options)
+
         app.UseWebApi(config)
 
     End Sub
