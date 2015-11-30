@@ -3,6 +3,15 @@ This is the changelog for the Azure Mobile **Apps** .NET server SDK, which are i
 Note: this applies only to the new Server SDK that's designed for App Service, **not Mobile Services**. Mobile Apps is only available in the new Azure portal.
 
 _____________
+**Release 1.0.119 (December 2015 | GA)**
+[https://github.com/Azure/azure-mobile-apps-net-server/releases/tag/1.0.119.0](https://github.com/Azure/azure-mobile-apps-net-server/releases/tag/1.0.119.0)
+
+- (Breaking change) Renamed `MobileAppTokenHandler` (and related methods) to `AppServiceTokenHandler`
+
+- (Breaking change) Removed unused `HttpConfiguration` and `HttpRequestMessage` extension methods
+
+- (Breaking change) Removed the public `MobileAppSettingsProvider` property on `MobileAppConfiguration`
+
 **Release 0.3.36 (November 2015 | RC)**
 [https://github.com/Azure/azure-mobile-apps-net-server/releases/tag/0.3.36.0](https://github.com/Azure/azure-mobile-apps-net-server/releases/tag/0.3.36.0)
 
