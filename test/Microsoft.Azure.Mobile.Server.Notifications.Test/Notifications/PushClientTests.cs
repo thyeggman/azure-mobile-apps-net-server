@@ -196,26 +196,5 @@ namespace Microsoft.Azure.Mobile.Server.Notifications
             // Assert
             this.clientMock.Verify();
         }
-
-        [Theory]
-        [MemberData("PushMessages")]
-        public void SendAsync_WithTag_SendsValidNotification(IPushMessage message, Type expected)
-        {
-            // Arrange
-            List<string> tags = new List<string>();
-            this.clientMock.Protected()
-                .Setup("SendNotificationAsync", ItExpr.IsAny<Notification>(), tags)
-                .Callback((Notification notification, IEnumerable<string> t) =>
-                {
-                    Assert.IsType(expected, notification);
-                })
-                .Verifiable();
-
-            // Act
-            this.client.SendAsync(message, tags);
-
-            // Assert
-            this.clientMock.Verify();
-        }
     }
 }
