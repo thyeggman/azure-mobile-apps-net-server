@@ -10,6 +10,9 @@
                 <TemplateReferences>
                     <WebAPI Required="true"/>
                 </TemplateReferences>
+                <AzureResources>
+                    <AzureWebsite/>
+                </AzureResources>
             </Options>
             <UIFilters>MobileApps</UIFilters>
         </Template>
