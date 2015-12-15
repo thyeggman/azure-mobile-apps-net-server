@@ -25,13 +25,8 @@ namespace Microsoft.Azure.Mobile.Server.Tables
 
             base.Initialize(controllerSettings, controllerDescriptor);
 
-            ITableControllerConfigProvider configurationProvider = controllerDescriptor.Configuration.GetTableControllerConfigProvider();
-            if (configurationProvider == null)
-            {
-                configurationProvider = new TableControllerConfigProvider();
-            }
-
-            configurationProvider.Configure(controllerSettings, controllerDescriptor);
+            ITableControllerConfigProvider tableConfigurationProvider = controllerDescriptor.Configuration.GetTableControllerConfigProvider();
+            tableConfigurationProvider.Configure(controllerSettings, controllerDescriptor);
         }
     }
 }

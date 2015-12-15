@@ -1,6 +1,6 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System.Collections.Generic;
 using System.Net;
@@ -32,10 +32,10 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
             get
             {
                 return new TheoryDataCollection<string[]>
-                {                    
-                    { new string[] { "http://A", "https://B", "http://C" } },                
+                {
+                    { new string[] { "http://A", "https://B", "http://C" } },
                     { new string[] { "http://你好.com", "http://世界.com" } },
-                    { new string[] { "http://testhost", "http://sample" } } 
+                    { new string[] { "http://testhost", "http://sample" } }
                 };
             }
         }
@@ -145,6 +145,7 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
         {
             // Arrange
             HttpConfiguration config = new HttpConfiguration();
+            CrossDomainController.Reset();
             new MobileAppConfiguration()
                 .MapLegacyCrossDomainController(origins)
                 .ApplyTo(config);
@@ -163,6 +164,7 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
         public async Task DirectOrigins_Wins_IfGlobalAlsoSet()
         {
             // Arrange
+            CrossDomainController.Reset();
             HttpConfiguration config = new HttpConfiguration();
 
             new MobileAppConfiguration()
@@ -185,8 +187,8 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
         public async Task OriginsCache_Null_IfNoOriginsSet()
         {
             // Arrange
+            CrossDomainController.Reset();
             HttpConfiguration config = new HttpConfiguration();
-
             new MobileAppConfiguration()
                 .MapLegacyCrossDomainController()
                 .ApplyTo(config);
@@ -205,7 +207,7 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
         [Fact]
         public async Task InitializeOrigins_ReturnsCachedList()
         {
-            // Arrange            
+            // Arrange
             HttpConfiguration config = new HttpConfiguration();
             config.EnableCors(new EnableCorsAttribute("http://test", "*", "*"));
             HttpRequestMessage request = new HttpRequestMessage();
@@ -223,6 +225,7 @@ namespace Microsoft.Azure.Mobile.Server.Controllers
         {
             HttpConfiguration config = new HttpConfiguration();
             MobileAppConfiguration mobileConfig = new MobileAppConfiguration();
+            CrossDomainController.Reset();
 
             if (origins == null)
             {
