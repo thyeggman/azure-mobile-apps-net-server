@@ -22,6 +22,13 @@ namespace Microsoft.Azure.Mobile.Server.Tables.Config
             HashSet<string> tableControllerNames = config.GetTableControllerNames();
             SetRouteConstraint<string> tableControllerConstraint = new SetRouteConstraint<string>(tableControllerNames, matchOnExcluded: false);
 
+            // register all TableControllers as exclusions so they do not map to /api
+            MobileAppConfiguration mobileAppConfig = config.GetMobileAppConfiguration();
+            foreach (string controllerName in tableControllerNames)
+            {
+                mobileAppConfig.AddBaseRouteExclusion(controllerName);
+            }
+
             HttpRouteCollectionExtensions.MapHttpRoute(
                 config.Routes,
                 name: TablesRouteName,

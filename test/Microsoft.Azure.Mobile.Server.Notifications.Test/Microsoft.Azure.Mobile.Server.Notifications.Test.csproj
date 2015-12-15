@@ -127,6 +127,7 @@
     </Compile>
     <Compile Include="ApplePushMessageTests.cs" />
     <Compile Include="Controllers\NotificationInstallationsControllerTests.cs" />
+    <Compile Include="Extensions\MobileAppExtensionsTests.cs" />
     <Compile Include="GooglePushMessageTests.cs" />
     <Compile Include="MpnsPushMessageTests.cs" />
     <Compile Include="Notifications\AlertPropertiesTests.cs" />

@@ -4,7 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Web.Http;
+using System.Web.Http.Routing;
 using Microsoft.Azure.Mobile.Server.Properties;
 
 namespace Microsoft.Azure.Mobile.Server.Config
@@ -15,15 +18,18 @@ namespace Microsoft.Azure.Mobile.Server.Config
     /// </summary>
     public class MobileAppConfiguration : AppConfiguration
     {
+        private bool enableApiControllers = false;
+        private IMobileAppControllerConfigProvider configProvider = new MobileAppControllerConfigProvider();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Microsoft.Azure.Mobile.Server.Config.MobileAppConfiguration" /> class.
         /// </summary>
         public MobileAppConfiguration()
         {
-            this.EnableApiControllers = false;
+            this.BaseRouteConstraints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        private bool EnableApiControllers { get; set; }
+        internal HashSet<string> BaseRouteConstraints { get; set; }
 
         /// <inheritdoc />
         public override void ApplyTo(HttpConfiguration config)
@@ -34,12 +40,13 @@ namespace Microsoft.Azure.Mobile.Server.Config
             }
 
             config.SetMobileAppConfiguration(this);
+            config.SetMobileAppControllerConfigProvider(this.configProvider);
 
             base.ApplyTo(config);
 
-            if (this.EnableApiControllers)
+            if (this.enableApiControllers)
             {
-                MapApiControllers(config);
+                this.MapApiControllers(config);
             }
         }
 
@@ -50,13 +57,46 @@ namespace Microsoft.Azure.Mobile.Server.Config
         /// <returns>The current <see cref="Microsoft.Azure.Mobile.Server.Config.MobileAppConfiguration"/>.</returns>
         public MobileAppConfiguration MapApiControllers()
         {
-            this.EnableApiControllers = true;
+            this.enableApiControllers = true;
             return this;
         }
 
-        private static void MapApiControllers(HttpConfiguration config)
+        /// <summary>
+        /// Registers the specified <see cref="IMobileAppControllerConfigProvider" /> with the <see cref="HttpConfiguration"/>.
+        /// Use this to override the default controller configuration.
+        /// </summary>
+        /// <param name="provider">The provider to register.</param>
+        /// <returns>The current <see cref="Microsoft.Azure.Mobile.Server.Config.MobileAppConfiguration"/>.</returns>
+        public MobileAppConfiguration WithMobileAppControllerConfigProvider(IMobileAppControllerConfigProvider provider)
+        {
+            if (provider == null)
+            {
+                throw new ArgumentNullException("provider");
+            }
+
+            this.configProvider = provider;
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a controller name to be excluded from the default route of 'api/{controller}/{id}'.
+        /// </summary>
+        /// <param name="exclusion">The controller name to exclude from the route. Do not include 'Controller' at the end of the string.</param>
+        public void AddBaseRouteExclusion(string exclusion)
+        {
+            if (string.IsNullOrWhiteSpace(exclusion))
+            {
+                throw new ArgumentNullException("exclusion");
+            }
+
+            this.BaseRouteConstraints.Add(exclusion);
+        }
+
+        private void MapApiControllers(HttpConfiguration config)
         {
             HashSet<string> tableControllerNames = config.GetMobileAppControllerNames();
+            tableControllerNames.RemoveWhere(n => this.BaseRouteConstraints.Contains(n));
+
             SetRouteConstraint<string> apiControllerConstraint = new SetRouteConstraint<string>(tableControllerNames, matchOnExcluded: false);
 
             HttpRouteCollectionExtensions.MapHttpRoute(

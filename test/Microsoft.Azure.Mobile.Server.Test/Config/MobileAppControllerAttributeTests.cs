@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -13,10 +12,7 @@ using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 using Microsoft.Azure.Mobile.Server.Cache;
-using Microsoft.Azure.Mobile.Server.Serialization;
 using Moq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using TestUtilities;
 using Xunit;
 
@@ -28,7 +24,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
         private HttpConfiguration config;
         private Mock<ICachePolicyProvider> providerMock;
         private HttpRequestMessage request;
-        private MobileAppControllerAttribute mobileAppControllerAttr;
+        private MobileAppControllerAttribute mobileAppActionFilterAttr;
         private HttpActionExecutedContext actionExecutedContext;
         private HttpControllerContext controllerContext;
         private HttpActionContext actionContext;
@@ -40,7 +36,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
             this.config.SetCachePolicyProvider(this.providerMock.Object);
 
             this.request = new HttpRequestMessage();
-            this.mobileAppControllerAttr = new MobileAppControllerAttribute();
+            this.mobileAppActionFilterAttr = new MobileAppControllerAttribute();
             this.actionExecutedContext = new HttpActionExecutedContext();
             this.controllerContext = new HttpControllerContext();
             this.controllerContext.Configuration = this.nullConfig;
@@ -142,36 +138,6 @@ namespace Microsoft.Azure.Mobile.Server.Config
             }
         }
 
-        [Fact]
-        public void Initialize_Initializes_SerializerSettings()
-        {
-            // Arrange
-            var attr = new MobileAppControllerAttribute();
-            var settings = new HttpControllerSettings(this.nullConfig);
-
-            // Act
-            attr.Initialize(settings, null);
-
-            // Assert
-            // Verify SerializerSettings are set up as we expect
-            var serializerSettings = settings.Formatters.JsonFormatter.SerializerSettings;
-            Assert.Equal(typeof(ServiceContractResolver), serializerSettings.ContractResolver.GetType());
-            Assert.Equal(DefaultValueHandling.Include, serializerSettings.DefaultValueHandling);
-            Assert.Equal(NullValueHandling.Include, serializerSettings.NullValueHandling);
-
-            // Verify Converters
-            var stringEnumConverter = serializerSettings.Converters.Single(c => c.GetType() == typeof(StringEnumConverter)) as StringEnumConverter;
-            Assert.False(stringEnumConverter.CamelCaseText);
-
-            var isoDateTimeConverter = serializerSettings.Converters.Single(c => c.GetType() == typeof(IsoDateTimeConverter)) as IsoDateTimeConverter;
-            Assert.Equal(DateTimeStyles.AdjustToUniversal, isoDateTimeConverter.DateTimeStyles);
-            Assert.Equal("yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFZ", isoDateTimeConverter.DateTimeFormat);
-            Assert.Equal(CultureInfo.InvariantCulture, isoDateTimeConverter.Culture);
-
-            Assert.NotSame(this.nullConfig.Formatters.JsonFormatter.SerializerSettings.ContractResolver, settings.Formatters.JsonFormatter.SerializerSettings.ContractResolver);
-            Assert.Same(settings.Formatters.JsonFormatter, settings.Formatters[0]);
-        }
-
         [Theory]
         [MemberData("CacheResponses")]
         [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "notUsed", Justification = "Part of test data")]
@@ -181,7 +147,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
             this.actionExecutedContext.Response = response;
 
             // Act
-            this.mobileAppControllerAttr.OnActionExecuted(this.actionExecutedContext);
+            this.mobileAppActionFilterAttr.OnActionExecuted(this.actionExecutedContext);
 
             // Assert
             // Make sure the response didn't change
@@ -198,7 +164,7 @@ namespace Microsoft.Azure.Mobile.Server.Config
             this.actionExecutedContext.Response = response;
 
             // Act
-            this.mobileAppControllerAttr.OnActionExecuted(this.actionExecutedContext);
+            this.mobileAppActionFilterAttr.OnActionExecuted(this.actionExecutedContext);
 
             // Assert
             this.providerMock.Verify(p => p.SetCachePolicy(response), shouldCall ? Times.Once() : Times.Never());
@@ -240,6 +206,27 @@ namespace Microsoft.Azure.Mobile.Server.Config
 
             // Assert
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void Initialize_CallsRegisteredConfigProvider()
+        {
+            // Arrange
+            var httpConfig = new HttpConfiguration();
+            var mockConfigProvider = new Mock<IMobileAppControllerConfigProvider>();
+            httpConfig.SetMobileAppControllerConfigProvider(mockConfigProvider.Object);
+            var attr = new MobileAppControllerAttribute();
+            var settings = new HttpControllerSettings(httpConfig);
+            var descriptor = new HttpControllerDescriptor()
+            {
+                Configuration = httpConfig
+            };
+
+            // Act
+            attr.Initialize(settings, descriptor);
+
+            // Assert
+            mockConfigProvider.Verify(m => m.Configure(settings, descriptor), Times.Once);
         }
     }
 }

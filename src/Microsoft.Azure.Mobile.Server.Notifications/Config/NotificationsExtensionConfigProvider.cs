@@ -12,6 +12,7 @@ namespace Microsoft.Azure.Mobile.Server.Notifications.Config
     {
         private const string PushRoutePrefix = "push/installations/";
         private const string NotificationInstallationsRouteName = "NotificationInstallations";
+        private const string PushControllerName = "notificationinstallations";
 
         public void Initialize(HttpConfiguration config)
         {
@@ -20,11 +21,15 @@ namespace Microsoft.Azure.Mobile.Server.Notifications.Config
                 throw new ArgumentNullException("config");
             }
 
+            // register the controller as an exclusion so it does not map to /api
+            MobileAppConfiguration mobileAppConfig = config.GetMobileAppConfiguration();
+            mobileAppConfig.AddBaseRouteExclusion(PushControllerName);
+
             HttpRouteCollectionExtensions.MapHttpRoute(
                 config.Routes,
                 name: NotificationInstallationsRouteName,
                 routeTemplate: PushRoutePrefix + "{installationId}",
-                defaults: new { controller = "notificationinstallations" });
+                defaults: new { controller = PushControllerName });
         }
     }
 }
