@@ -144,7 +144,7 @@ namespace Microsoft.Azure.Mobile.Server.Notifications
         /// <param name="tags">The set of tags to use for this notification.</param>
         /// <returns>A <see cref="Task{T}"/> representing the notification send operation.</returns>
         /// <remarks>This method is obsolete. You should use the HubClient.SendNotificationAsync() method instead.</remarks>
-        [Obsolete]
+        [Obsolete("This method is obsolete. You should use the HubClient.SendNotificationAsync() method instead.")]
         public virtual Task<NotificationOutcome> SendAsync(IPushMessage message, IEnumerable<string> tags)
         {
             if (message == null)
