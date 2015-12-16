@@ -142,7 +142,7 @@
     <Compile Include="MobileAppAuthenticationHandlerTests.cs" />
     <Compile Include="MobileAppAuthenticationOptionsTests.cs" />
     <Compile Include="AppServiceTokenHandlerTests.cs" />
-    <Compile Include="ServiceUserTests.cs" />
+    <Compile Include="IPrincipalExtensionsTests.cs" />
     <Compile Include="TestControllers\EmptyController.cs" />
     <Compile Include="TestControllers\SecuredController.cs" />
     <Compile Include="TwitterCredentialsTests.cs" />

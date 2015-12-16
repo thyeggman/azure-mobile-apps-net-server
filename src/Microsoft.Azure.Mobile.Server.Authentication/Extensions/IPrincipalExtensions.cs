@@ -129,7 +129,7 @@ namespace System.Security.Principal
             AzureActiveDirectoryCredentials aadCredentials = credentials as AzureActiveDirectoryCredentials;
             if (aadCredentials != null)
             {
-                aadCredentials.AccessToken = tokenEntry.AccessToken;
+                aadCredentials.AccessToken = tokenEntry.IdToken;
                 aadCredentials.ObjectId = credentials.Claims.GetValueOrDefault(ObjectIdentifierClaimType);
                 aadCredentials.TenantId = credentials.Claims.GetValueOrDefault(TenantIdClaimType);
                 aadCredentials.UserId = tokenEntry.UserId;

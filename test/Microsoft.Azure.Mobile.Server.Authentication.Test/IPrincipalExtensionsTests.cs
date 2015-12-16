@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Microsoft.Azure.Mobile.Server.Security
 {
-    public class ServiceUserTests
+    public class IPrincipalExtensionsTests
     {
         private const string ObjectIdentifierClaimType = @"http://schemas.microsoft.com/identity/claims/objectidentifier";
         private const string TenantIdClaimType = @"http://schemas.microsoft.com/identity/claims/tenantid";
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
         private Mock<AppServiceTokenHandler> tokenHandlerMock;
         private IAppServiceTokenHandler tokenHandler;
 
-        public ServiceUserTests()
+        public IPrincipalExtensionsTests()
         {
             this.facebookCredentials = new FacebookCredentials() { UserId = "Facebook:FBUserId", AccessToken = "ABCDEF" };
 
@@ -147,6 +147,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
             TokenEntry tokenEntry = new TokenEntry("aad");
             tokenEntry.AccessToken = "TestAccessToken";
+            tokenEntry.IdToken = "TestIdToken";
             tokenEntry.ExpiresOn = DateTime.Parse("2015-03-12T16:49:28.504Z");
             List<ClaimSlim> claims = new List<ClaimSlim>
             {
@@ -161,7 +162,8 @@ namespace Microsoft.Azure.Mobile.Server.Security
 
             IPrincipalExtensions.PopulateProviderCredentials(tokenEntry, credentials);
 
-            Assert.Equal("TestAccessToken", credentials.AccessToken);
+            // For AAD, the id_token value needs to get copied to AccessToken, not the access_token value.
+            Assert.Equal("TestIdToken", credentials.AccessToken);
             Assert.Equal("TestTenantId", credentials.Claims.GetValueOrDefault(TenantIdClaimType));
             Assert.Equal("TestObjectId", credentials.Claims.GetValueOrDefault(ObjectIdentifierClaimType));
             Assert.Equal(UserIdClaimValue, credentials.UserId);
