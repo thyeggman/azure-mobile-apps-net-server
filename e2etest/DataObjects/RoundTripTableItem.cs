@@ -64,4 +64,8 @@ namespace ZumoE2EServerApp.DataObjects
         [NotMapped]
         public Byte[] Version { get; set; }
     }
+
+    public class StringIdRoundTripTableSoftDeleteItem : RoundTripTableItem
+    {
+    }
 }
