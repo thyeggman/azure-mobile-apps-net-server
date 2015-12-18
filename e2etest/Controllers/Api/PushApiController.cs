@@ -79,7 +79,7 @@ namespace ZumoE2EServerApp.Controllers
 
                         message.Add(key.Name, (string)key.Value);
                     }
-                    var result = await this.pushClient.SendAsync(message, "World");
+                    var result = await this.pushClient.SendAsync(message);
                 }
                 else if (type == "gcm")
                 {
