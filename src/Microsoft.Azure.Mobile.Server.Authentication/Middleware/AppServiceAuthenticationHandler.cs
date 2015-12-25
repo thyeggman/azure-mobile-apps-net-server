@@ -89,10 +89,7 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
                 identity = new ClaimsIdentity();
             }
 
-            return new AuthenticationTicket(identity, new AuthenticationProperties()
-            {
-                
-            });
+            return new AuthenticationTicket(identity, null);
         }
 
         /// <summary>
