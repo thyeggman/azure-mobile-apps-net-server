@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BBB08829-B162-40C7-A33A-AEBE20307743}"
 EndProject
@@ -56,6 +56,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "e2etest", "e2etest", "{1E947539-7C0F-4E90-951B-343E1E07995A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZumoE2EServerApp", "e2etest\ZumoE2EServerApp.csproj", "{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.Mobile.Server.Swagger", "src\Microsoft.Azure.Mobile.Server.Swagger\Microsoft.Azure.Mobile.Server.Swagger.csproj", "{3D029D1E-AA56-4984-8A16-B0ACFCED632D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.Mobile.Server.Swagger.Test", "test\Microsoft.Azure.Mobile.Server.Swagger.Test\Microsoft.Azure.Mobile.Server.Swagger.Test.csproj", "{4F717E31-8F5F-4F73-A729-7EDA50A45CAF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -155,6 +159,14 @@ Global
 		{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D029D1E-AA56-4984-8A16-B0ACFCED632D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D029D1E-AA56-4984-8A16-B0ACFCED632D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D029D1E-AA56-4984-8A16-B0ACFCED632D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D029D1E-AA56-4984-8A16-B0ACFCED632D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F717E31-8F5F-4F73-A729-7EDA50A45CAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F717E31-8F5F-4F73-A729-7EDA50A45CAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F717E31-8F5F-4F73-A729-7EDA50A45CAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F717E31-8F5F-4F73-A729-7EDA50A45CAF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -183,5 +195,7 @@ Global
 		{4F8392EE-59FF-41A0-8E69-568352FA463F} = {BBB08829-B162-40C7-A33A-AEBE20307743}
 		{9271075D-1580-43EE-840E-11F156C7EEF9} = {2ED08A97-4DE7-4844-997C-D7EC334639C5}
 		{74BCC6A6-0BF1-4FF6-B63F-63E59FC0DE3A} = {1E947539-7C0F-4E90-951B-343E1E07995A}
+		{3D029D1E-AA56-4984-8A16-B0ACFCED632D} = {BBB08829-B162-40C7-A33A-AEBE20307743}
+		{4F717E31-8F5F-4F73-A729-7EDA50A45CAF} = {2ED08A97-4DE7-4844-997C-D7EC334639C5}
 	EndGlobalSection
 EndGlobal

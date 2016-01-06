@@ -1,0 +1,30 @@
+﻿<script>
+    var tokenAsJson = null;
+    var qp = {};
+    var i = location.href.indexOf('#token=');
+    if (i > 0) {
+        tokenAsJson = decodeURIComponent(location.href.substring(i + 7));
+    }
+    else {
+        i = location.href.indexOf('#error=');
+        if (i > 0) {
+            error = decodeURIComponent(location.href.substring(i + 7));
+        }
+    }
+
+    if (tokenAsJson !== null) {
+        try {
+            qp.access_token = JSON.parse(tokenAsJson).authenticationToken;
+        }
+        catch (e) {
+            qp.error = e;
+        }
+    }
+
+    if (window.opener.swaggerUi.tokenUrl)
+        window.opener.processOAuthCode(qp);
+    else
+        window.opener.onOAuthComplete(qp);
+
+    window.close();
+</script>
