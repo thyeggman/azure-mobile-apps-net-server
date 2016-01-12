@@ -27,30 +27,31 @@ namespace ZumoE2EServerApp.Controllers
 
             string identity = null;
             var fbcreds = await user.GetAppServiceIdentityAsync<FacebookCredentials>(this.Request);
-            if (fbcreds != null && fbcreds.Claims.Count > 0)
+            if (fbcreds != null && fbcreds.UserClaims.Any())
             {
                 identity = "{\"facebook\":{\"access_token\":\"" + fbcreds.AccessToken + "\"}}";
             }
 
             var twitterCreds = await user.GetAppServiceIdentityAsync<TwitterCredentials>(this.Request);
-            if (twitterCreds != null && twitterCreds.Claims.Count > 0) {
+            if (twitterCreds != null && twitterCreds.UserClaims.Any())
+            {
                 identity = "{\"twitter\":{\"access_token\":\"" + twitterCreds.AccessToken + "\",\"access_token_secret\":\"" + twitterCreds.AccessTokenSecret + "\"}}";
             }
 
             var googleCreds = await user.GetAppServiceIdentityAsync<GoogleCredentials>(this.Request);
-            if (googleCreds != null && googleCreds.Claims.Count > 0)
+            if (googleCreds != null && googleCreds.UserClaims.Any())
             {
                 identity = "{\"google\":{\"access_token\":\"" + googleCreds.AccessToken + "\",\"authorization-code\":\"\"}}";
             }
 
             var msaCreds = await user.GetAppServiceIdentityAsync<MicrosoftAccountCredentials>(this.Request);
-            if (msaCreds != null && msaCreds.Claims.Count > 0)
+            if (msaCreds != null && msaCreds.UserClaims.Any())
             {
                 identity = "{\"microsoftaccount\":{\"access_token\":\"" + msaCreds.AccessToken + "\"}}";
             }
 
             var aadCreds = await user.GetAppServiceIdentityAsync<AzureActiveDirectoryCredentials>(this.Request);
-            if (aadCreds != null && aadCreds.Claims.Count > 0)
+            if (aadCreds != null && aadCreds.UserClaims.Any())
             {
                 identity = "{\"aad\":{\"access_token\":\"\"}}";
             }

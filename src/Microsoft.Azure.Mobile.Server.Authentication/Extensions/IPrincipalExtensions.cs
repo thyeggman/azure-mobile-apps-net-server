@@ -3,9 +3,10 @@
 // ----------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens;
+using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -101,10 +102,13 @@ namespace System.Security.Principal
             if (tokenEntry.UserClaims != null)
             {
                 credentials.Claims = new Dictionary<string, string>();
+                Collection<Claim> userClaims = new Collection<Claim>();
                 foreach (ClaimSlim claim in tokenEntry.UserClaims)
                 {
                     credentials.Claims[claim.Type] = claim.Value;
+                    userClaims.Add(new Claim(claim.Type, claim.Value));
                 }
+                credentials.UserClaims = userClaims;
             }
 
             FacebookCredentials facebookCredentials = credentials as FacebookCredentials;
@@ -130,8 +134,16 @@ namespace System.Security.Principal
             if (aadCredentials != null)
             {
                 aadCredentials.AccessToken = tokenEntry.IdToken;
-                aadCredentials.ObjectId = credentials.Claims.GetValueOrDefault(ObjectIdentifierClaimType);
-                aadCredentials.TenantId = credentials.Claims.GetValueOrDefault(TenantIdClaimType);
+                Claim objectIdClaim = credentials.UserClaims.FirstOrDefault(c => string.Equals(c.Type, ObjectIdentifierClaimType, StringComparison.OrdinalIgnoreCase));
+                if (objectIdClaim != null)
+                {
+                    aadCredentials.ObjectId = objectIdClaim.Value;
+                }
+                Claim tenantIdClaim = credentials.UserClaims.FirstOrDefault(c => string.Equals(c.Type, TenantIdClaimType, StringComparison.OrdinalIgnoreCase));
+                if (tenantIdClaim != null)
+                {
+                    aadCredentials.TenantId = tenantIdClaim.Value;
+                }
                 aadCredentials.UserId = tokenEntry.UserId;
                 return;
             }
