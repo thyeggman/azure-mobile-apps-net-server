@@ -22,7 +22,7 @@
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>..\..\bin\Debug\Microsoft.Azure.Mobile.Login.xml</DocumentationFile>
+    <DocumentationFile>..\..\bin\Debug\Microsoft.Azure.Mobile.Server.Login.xml</DocumentationFile>
     <NoWarn>1591</NoWarn>
     <CodeAnalysisRuleSet>..\Src.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>

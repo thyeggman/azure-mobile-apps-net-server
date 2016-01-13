@@ -61,7 +61,10 @@ namespace Local
                     TokenHandler = config.GetAppServiceTokenHandler()
                 });
             }
+
             app.UseWebApi(config);
+
+            ConfigureSwagger(config);
         }
     }
 
