@@ -1,8 +1,10 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Security.Claims;
 using Microsoft.Azure.Mobile.Server.Authentication;
 using Moq;
 using TestUtilities;
@@ -40,6 +42,15 @@ namespace Microsoft.Azure.Mobile.Server.Security
             claims.Add("foo", "value1");
             claims.Add("bar", "value2");
             PropertyAssert.Roundtrips(this.creds, c => c.Claims, PropertySetter.NullRoundtrips, roundtripValue: claims);
+        }
+
+        [Fact]
+        public void UserClaims_Roundtrip()
+        {
+            Collection<Claim> claims = new Collection<Claim>();
+            claims.Add(new Claim("foo", "value1"));
+            claims.Add(new Claim("bar", "value2"));
+            PropertyAssert.Roundtrips(this.creds, c => c.UserClaims, PropertySetter.NullRoundtrips, roundtripValue: claims);
         }
     }
 }

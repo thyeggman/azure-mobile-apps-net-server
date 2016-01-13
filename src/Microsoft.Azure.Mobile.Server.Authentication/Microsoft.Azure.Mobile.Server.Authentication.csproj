@@ -26,6 +26,7 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DocumentationFile>..\..\bin\Debug\Microsoft.Azure.Mobile.Authentication.xml</DocumentationFile>
+    <WarningsNotAsErrors>618</WarningsNotAsErrors>
     <NoWarn>1591</NoWarn>
     <CodeAnalysisRuleSet>..\Src.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
@@ -38,6 +39,7 @@
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>618</WarningsNotAsErrors>
     <CodeAnalysisRuleSet>..\Src.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>..\..\bin\Release\Microsoft.Azure.Mobile.Server.Authentication.xml</DocumentationFile>
     <NoWarn>1591</NoWarn>

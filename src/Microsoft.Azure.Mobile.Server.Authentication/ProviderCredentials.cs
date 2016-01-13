@@ -1,9 +1,11 @@
-﻿// ---------------------------------------------------------------------------- 
+﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Security.Claims;
 using Newtonsoft.Json;
 
 namespace Microsoft.Azure.Mobile.Server.Authentication
@@ -45,7 +47,16 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
         /// Gets or sets the collection of additional claims associated with this instance. May
         /// be null or empty.
         /// </summary>
+        /// <remarks>This property is obsolete. Use the UserClaims property instead.</remarks>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Setter is required for serialization."), JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [Obsolete("Use the UserClaims property instead.", error: false)]
         public IDictionary<string, string> Claims { get; set; }
+
+        /// <summary>
+        /// Gets or sets the collection of additional claims associated with this instance. May
+        /// be null or empty.
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public IEnumerable<Claim> UserClaims { get; set; }
     }
 }
