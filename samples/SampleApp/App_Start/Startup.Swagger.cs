@@ -19,7 +19,7 @@ namespace Local
                    c.SingleApiVersion("v1", "myService");
 
                    // Tells the Swagger doc that any MobileAppController needs a
-                   // ZUMO -API-VERSION header with default 2.0.0
+                   // ZUMO-API-VERSION header with default 2.0.0
                    c.OperationFilter<MobileAppHeaderFilter>();
 
                    // Looks at attributes on properties to decide whether they are readOnly.
