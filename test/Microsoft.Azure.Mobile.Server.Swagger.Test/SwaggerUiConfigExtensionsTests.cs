@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Owin.Testing;
@@ -36,6 +37,7 @@ namespace Microsoft.Azure.Mobile.Server.Swagger.Test
             Assert.Equal(oauthExpected, oauth);
         }
 
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "This code is resilient to this scenario")]
         private static string GetResourceString(string resourceName)
         {
             string resourceText;
