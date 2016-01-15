@@ -26,6 +26,7 @@ namespace ZumoE2EServerApp
         {
             var config = new HttpConfiguration();
             config.EnableSystemDiagnosticsTracing();
+            config.IncludeErrorDetailPolicy = IncludeErrorDetailPolicy.Always;
 
             config.MapHttpAttributeRoutes();
             new MobileAppConfiguration()
