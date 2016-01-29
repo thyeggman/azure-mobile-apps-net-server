@@ -133,7 +133,7 @@ namespace Microsoft.Azure.Mobile.Server
         [Theory]
         [InlineData("api/secured/anonymous")]
         [InlineData("api/secured/authorized")]
-        public async Task TokenInRequest_ReturnsOK(string action)
+        public async Task TokenInRequest_ReturnsOk(string action)
         {
             TestContext context = TestContext.Create();
             string audience = TestLocalhostName;
