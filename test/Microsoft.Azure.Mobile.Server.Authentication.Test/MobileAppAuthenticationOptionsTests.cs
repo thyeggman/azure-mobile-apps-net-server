@@ -12,9 +12,7 @@ namespace Microsoft.Azure.Mobile.Server.Security
 {
     public class MobileAppAuthenticationOptionsTests
     {
-        private const string MasterKey = "$$MasterKey";
         private const string SigningKey = "$$SigningKey";
-        private const string ApplicationKey = "$$ApplicationKey";
 
         private AppServiceAuthenticationOptions options;
 

@@ -11,8 +11,7 @@ using Owin;
 namespace Microsoft.Azure.Mobile.Server.Authentication
 {
     /// <summary>
-    /// The <see cref="AppServiceAuthenticationMiddleware"/> provides the OWIN middleware for authenticating a caller who has already authenticated using the Login controller,
-    /// or has provided HTTP basic authentication credentials matching either the application key or the master key (for admin access).
+    /// The <see cref="AppServiceAuthenticationMiddleware"/> provides the OWIN middleware for authenticating a caller who has already authenticated using the Login controller.
     /// </summary>
     public class AppServiceAuthenticationMiddleware : AuthenticationMiddleware<AppServiceAuthenticationOptions>
     {
