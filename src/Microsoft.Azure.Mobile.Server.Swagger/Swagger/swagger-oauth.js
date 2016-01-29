@@ -162,12 +162,13 @@ function handleLogin() {
 
         redirect_uri = redirectUrl;
 
+        // <AzureMobile>
+        /*
         url += '&realm=' + encodeURIComponent(realm);
         url += '&client_id=' + encodeURIComponent(clientId);
         url += '&scope=' + encodeURIComponent(scopes.join(scopeSeparator));
         url += '&state=' + encodeURIComponent(state);
-
-        // <AzureMobile>
+        */
         url += '&post_login_redirect_url=' + encodeURIComponent(redirectUrl);
         url += '&session_mode=token';
         // </AzureMobile>
