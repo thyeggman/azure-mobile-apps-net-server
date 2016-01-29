@@ -17,8 +17,7 @@ using Microsoft.Owin.Security.Infrastructure;
 namespace Microsoft.Azure.Mobile.Server.Authentication
 {
     /// <summary>
-    /// The <see cref="AppServiceAuthenticationHandler"/> authenticates a caller who has already authenticated using the Login controller,
-    /// or has provided HTTP basic authentication credentials matching either the application key or the master key (for admin access).
+    /// The <see cref="AppServiceAuthenticationHandler"/> authenticates a caller who has already authenticated using the Login controller.
     /// </summary>
     public class AppServiceAuthenticationHandler : AuthenticationHandler<AppServiceAuthenticationOptions>
     {
