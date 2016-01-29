@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Mobile.Server
 
             JwtSecurityToken token = context.GetTestToken(SigningKeyBeta, audience, issuer);
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/application");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/authorized");
             request.Headers.Add(AppServiceAuthenticationHandler.AuthenticationHeaderName, token.RawData);
             HttpResponseMessage response = await context.Client.SendAsync(request);
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -94,55 +94,28 @@ namespace Microsoft.Azure.Mobile.Server
 
             string malformedToken = "no way is this a jwt";
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/application");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/authorized");
             request.Headers.Add(AppServiceAuthenticationHandler.AuthenticationHeaderName, malformedToken);
             HttpResponseMessage response = await context.Client.SendAsync(request);
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
         [Fact]
-        public async Task ApplicationAction_AppKeyNotInRequest_ReturnsForbidden()
+        public async Task AuthTokenNotInRequest_ToAuthorizedAction_ReturnsUnauthorized()
         {
             TestContext context = TestContext.Create();
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/application");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/authorized");
             HttpResponseMessage response = await context.Client.SendAsync(request);
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task UserAction_TokenNotInRequest_ReturnsForbidden()
-        {
-            TestContext context = TestContext.Create();
-
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/user");
-            HttpResponseMessage response = await context.Client.SendAsync(request);
-
-            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task UserAction_TokenInRequest_ReturnsOk()
-        {
-            TestContext context = TestContext.Create();
-            string audience = TestLocalhostName;
-            string issuer = TestLocalhostName;
-
-            JwtSecurityToken token = context.GetTestToken(context.SigningKey, audience, issuer);
-
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/user");
-            request.Headers.Add(AppServiceAuthenticationHandler.AuthenticationHeaderName, token.RawData);
-            HttpResponseMessage response = await context.Client.SendAsync(request);
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Theory]
         [InlineData("x-zumo-auth")]
         [InlineData("X-ZUMO-AUTH")]
         [InlineData("X-ZuMo-AuTh")]
-        public async Task UserAction_TokenInRequest_CaseInsensitiveHeader_ReturnsOk(string authHeaderName)
+        public async Task AuthorizedAction_TokenInRequest_CaseInsensitiveHeader_ReturnsOk(string authHeaderName)
         {
             TestContext context = TestContext.Create();
             string audience = TestLocalhostName;
@@ -150,29 +123,17 @@ namespace Microsoft.Azure.Mobile.Server
 
             JwtSecurityToken token = context.GetTestToken(context.SigningKey, audience, issuer);
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/user");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/authorized");
             request.Headers.Add(authHeaderName, token.RawData);
             HttpResponseMessage response = await context.Client.SendAsync(request);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
-        [Fact]
-        public async Task AdminAction_MasterKeyNotInRequest_ReturnsForbidden()
-        {
-            TestContext context = TestContext.Create();
-
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/admin");
-            HttpResponseMessage response = await context.Client.SendAsync(request);
-
-            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        }
-
         [Theory]
         [InlineData("api/secured/anonymous")]
-        [InlineData("api/secured/application")]
-        [InlineData("api/secured/user")]
-        public async Task TokenInRequest_CanInvokeUserLevelAndBelow(string action)
+        [InlineData("api/secured/authorized")]
+        public async Task TokenInRequest_ReturnsOK(string action)
         {
             TestContext context = TestContext.Create();
             string audience = TestLocalhostName;
@@ -187,15 +148,12 @@ namespace Microsoft.Azure.Mobile.Server
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
-        [Theory]
-        [InlineData("api/secured/application")]
-        [InlineData("api/secured/user")]
-        [InlineData("api/secured/admin")]
-        public async Task AnonymousRequest_CannotInvokeSecuredActions(string action)
+        [Fact]
+        public async Task AnonymousRequest_ToSecured_ReturnsUnauthorized()
         {
             TestContext context = TestContext.Create();
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, action);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "api/secured/authorized");
             HttpResponseMessage response = await context.Client.SendAsync(request);
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);

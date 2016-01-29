@@ -19,28 +19,8 @@ namespace Microsoft.Azure.Mobile.Server.TestControllers
         }
 
         [Authorize]
-        [Route("api/secured/application")]
-        public HttpResponseMessage GetApplication()
-        {
-            return new HttpResponseMessage(HttpStatusCode.OK);
-        }
-
-        [Authorize]
-        [Route("api/secured/user")]
-        public HttpResponseMessage GetUser()
-        {
-            return new HttpResponseMessage(HttpStatusCode.OK);
-        }
-
-        [Authorize]
-        [Route("api/secured/admin")]
-        public HttpResponseMessage GetAdmin()
-        {
-            return new HttpResponseMessage(HttpStatusCode.OK);
-        }
-
-        [Route("api/secured/nothing")]
-        public HttpResponseMessage Get()
+        [Route("api/secured/authorized")]
+        public HttpResponseMessage GetAuthorized()
         {
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
