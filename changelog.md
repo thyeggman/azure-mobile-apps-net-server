@@ -3,6 +3,19 @@ This is the changelog for the Azure Mobile **Apps** .NET server SDK, which are i
 Note: this applies only to the new Server SDK that's designed for App Service, **not Mobile Services**. Mobile Apps is only available in the new Azure portal.
 
 _____________
+**Release 1.1.157.1 (February 2016)**
+[https://github.com/Azure/azure-mobile-apps-net-server/releases/tag/1.1.157.1](https://github.com/Azure/azure-mobile-apps-net-server/releases/tag/1.1.157.1)
+
+- Introducing Swagger support with **Microsoft.Azure.Mobile.Server.Swagger**, currently in Preview. For more details, see [Adding Swagger Metadata and Help UI to a Mobile App](https://github.com/Azure/azure-mobile-apps-net-server/wiki/Adding-Swagger-Metadata-and-Help-UI-to-a-Mobile-App)
+
+- Fixed [Issue #40](https://github.com/Azure/azure-mobile-apps-net-server/issues/40): TableControllers appear on both the /api and the /tables routes
+
+- Fixed [Issue #48](https://github.com/Azure/azure-mobile-apps-net-server/issues/48): Improved configuration for MobileAppControllers. See [Configuring MobileAppController and TableController Settings](https://github.com/Azure/azure-mobile-apps-net-server/wiki/Configuring-MobileAppController-and-TableController-Settings) for more information.
+
+- Fixed [Issue #59](https://github.com/Azure/azure-mobile-apps-net-server/issues/59): AccessToken is null
+
+- Fixed [Issue #70](https://github.com/Azure/azure-mobile-apps-net-server/issues/70): IPrincipal.GetAppServiceIdentityAsync drops claims with same names.
+
 **Release 1.0.119 (December 2015 | GA)**
 [https://github.com/Azure/azure-mobile-apps-net-server/releases/tag/1.0.119.0](https://github.com/Azure/azure-mobile-apps-net-server/releases/tag/1.0.119.0)
 
