@@ -23,6 +23,14 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SdkRel|AnyCPU'">
+    <OutputPath>bin\SdkRel\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -217,7 +225,7 @@
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)' == 'Release' ">
+  <ItemGroup Condition=" '$(Configuration)' == 'SdkRel' ">
     <Reference Include="Microsoft.Azure.Mobile.Server, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Azure.Mobile.Server.ServerNugetVersion\lib\net45\Microsoft.Azure.Mobile.Server.dll</HintPath>
       <Private>True</Private>
@@ -259,7 +267,7 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
+  <ItemGroup Condition=" '$(Configuration)' != 'SdkRel' ">
     <ProjectReference Include="..\src\Microsoft.Azure.Mobile.Server.Authentication\Microsoft.Azure.Mobile.Server.Authentication.csproj">
       <Project>{61ff8937-4ebf-4e16-b3e5-9a1dba6833e3}</Project>
       <Name>Microsoft.Azure.Mobile.Server.Authentication</Name>
