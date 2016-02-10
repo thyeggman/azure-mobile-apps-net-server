@@ -111,14 +111,12 @@ namespace Microsoft.Azure.Mobile.Server.Authentication
             {
                 throw new ArgumentNullException("options");
             }
-
-            bool tokenHeaderExists = request.Headers.ContainsKey(AuthenticationHeaderName);
-            if (!tokenHeaderExists)
+            string[] tokenFromHeaderCollection;            
+            if (!request.Headers.TryGetValue(AuthenticationHeaderName,out tokenFromHeaderCollection))
             {
                 return null;
             }
-
-            string tokenFromHeader = request.Headers.Get(AuthenticationHeaderName);
+            string tokenFromHeader = tokenFromHeaderCollection[0];            
 
             // Attempt to parse and validate the token from header
             ClaimsPrincipal claimsPrincipalFromToken;

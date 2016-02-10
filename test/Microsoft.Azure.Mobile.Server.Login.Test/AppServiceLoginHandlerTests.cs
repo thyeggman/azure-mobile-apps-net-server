@@ -26,12 +26,12 @@ namespace Microsoft.Azure.Mobile.Server.Login.Test
                 new Claim(JwtRegisteredClaimNames.Sub, UserId),
                 new Claim("custom_claim_1", "CustomClaimValue1"),
                 new Claim("custom_claim_2", "CustomClaimValue2")
-            };
+            };            
             JwtSecurityToken token = AppServiceLoginHandler.CreateToken(claims, SigningKey, Audience, Issuer, TimeSpan.FromDays(10));
-
-            Assert.Equal(8, token.Claims.Count());
-
-            Assert.Equal(10, (token.ValidTo - DateTime.Now).Days);
+            
+            Assert.Equal(8, token.Claims.Count());    
+                    
+            Assert.Equal(10, (token.ValidTo - token.ValidFrom).Days);
             Assert.NotNull(token.Payload.Exp);
             Assert.Equal("CustomClaimValue1", token.Claims.Single(p => p.Type == "custom_claim_1").Value);
             Assert.Equal("CustomClaimValue2", token.Claims.Single(p => p.Type == "custom_claim_2").Value);
