@@ -25,6 +25,19 @@
                 <RunRule RuleID="global.WebForms" Option="WebForms" />
                 <RunRule RuleID="global.WebApiWithWebForms" Option="WebForms" />
             </ApplyRules>
+            <!-- This needs to run last since it applies an XDT and avoids the other rules replacing web.config -->
+            <ApplyRules>
+               <RunRule RuleID="WebFormsPackages14" />
+            </ApplyRules>
         </BaseTemplate>
     </BaseTemplates>
+
+    <Rules>
+        <Rule ID="WebFormsPackages14">
+            <AddNugetPackages NugetPackageKey="__NugetRepoKey__" SkipAssemblyReferences="false" IsPreUnzipped="true">
+                <Package ID="Microsoft.Net.Compilers" Version="__MicrosoftNetCompilersPackageVersion__" />
+                <Package ID="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="__MicrosoftCodeDomProvidersPackageVersion__" />
+            </AddNugetPackages>
+        </Rule>
+    </Rules>
 </TemplateDefinition>
